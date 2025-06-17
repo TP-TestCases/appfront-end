@@ -1,0 +1,147 @@
+import React from 'react'
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Input,
+  Button,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure
+} from '@nextui-org/react'
+import { Icon } from '@iconify/react'
+
+const UserStories: React.FC = () => {
+  const [stories, setStories] = React.useState([
+    {
+      id: 1,
+      title: 'Refine backlog ordering',
+      epic: 'Epic 001',
+      status: 'To Do'
+    },
+    {
+      id: 2,
+      title: 'Implement story import',
+      epic: 'Epic 001',
+      status: 'In Progress'
+    },
+    {
+      id: 3,
+      title: 'Validate acceptance criteria',
+      epic: 'Epic 001',
+      status: 'Done'
+    }
+  ])
+  const [filteredStories, setFilteredStories] = React.useState(stories)
+  const [searchQuery, setSearchQuery] = React.useState('')
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [editingStory, setEditingStory] = React.useState(null)
+
+  const handleSearch = (query: string): void => {
+    setSearchQuery(query)
+    setFilteredStories(
+      stories.filter(
+        (story) =>
+          story.title.toLowerCase().includes(query.toLowerCase()) ||
+          story.epic.toLowerCase().includes(query.toLowerCase()) ||
+          story.status.toLowerCase().includes(query.toLowerCase())
+      )
+    )
+  }
+
+  const handleEdit = (story): void => {
+    setEditingStory(story)
+    onOpen()
+  }
+
+  const handleCreate = (): void => {
+    setEditingStory(null)
+    onOpen()
+  }
+
+  const handleSave = (updatedStory): void => {
+    if (editingStory) {
+      setStories(stories.map((s) => (s.id === updatedStory.id ? updatedStory : s)))
+    } else {
+      setStories([...stories, { ...updatedStory, id: stories.length + 1 }])
+    }
+    onClose()
+  }
+
+  const handleImport = (): void => {
+    // Implement import functionality
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">User Stories</h1>
+        <div className="space-x-2">
+          <Button color="primary" onPress={handleCreate}>
+            <Icon icon="lucide:plus" className="mr-2" />
+            Create Story
+          </Button>
+          <Button color="secondary" onPress={handleImport}>
+            <Icon icon="lucide:upload" className="mr-2" />
+            Import
+          </Button>
+        </div>
+      </div>
+      <Input
+        placeholder="Search stories..."
+        value={searchQuery}
+        onValueChange={handleSearch}
+        startContent={<Icon icon="lucide:search" />}
+        className="max-w-xs"
+      />
+      <Table aria-label="User stories table" removeWrapper>
+        <TableHeader>
+          <TableColumn>TITLE</TableColumn>
+          <TableColumn>EPIC</TableColumn>
+          <TableColumn>STATUS</TableColumn>
+          <TableColumn>ACTIONS</TableColumn>
+        </TableHeader>
+        <TableBody>
+          {filteredStories.map((story) => (
+            <TableRow key={story.id}>
+              <TableCell>{story.title}</TableCell>
+              <TableCell>{story.epic}</TableCell>
+              <TableCell>{story.status}</TableCell>
+              <TableCell>
+                <Button size="sm" variant="light" onPress={() => handleEdit(story)}>
+                  <Icon icon="lucide:edit" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader>{editingStory ? 'Edit Story' : 'Create Story'}</ModalHeader>
+              <ModalBody>{/* Form fields for editing/creating story */}</ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Cancel
+                </Button>
+                <Button color="primary" onPress={() => handleSave(editingStory)}>
+                  Save
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </div>
+  )
+}
+
+export default UserStories
