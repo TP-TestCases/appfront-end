@@ -1,0 +1,15 @@
+# Node
+node_modules/
+
+# vscode
+.vscode/
+
+# Build outputs
+dist/
+
+# bun
+bun.lock
+
+# packages
+packages-lock.json
+
