@@ -13,3 +13,5 @@ bun.lock
 # packages
 packages-lock.json
 
+# electron
+out/
