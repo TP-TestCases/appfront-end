@@ -1,34 +1,37 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import React from 'react'
+import { NextUIProvider } from '@nextui-org/react'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import Dashboard from './components/Dashboard'
+import UserStories from './components/UserStories'
+import Chat from './components/Chat'
+import Sidebar from './components/Sidebar'
+import Login from './components/Login'
+import Register from './components/Register'
+import AccountSettings from './components/AccountSettings'
 
-function App(): React.JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+const App: React.FC = () => {
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false)
 
   return (
-    <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
+    <NextUIProvider>
+      <Router>
+        <div className="flex min-h-screen bg-background text-foreground">
+          {isLoggedIn && <Sidebar />}
+          <main className="flex-grow p-8">
+            <Routes>
+              <Route
+                path="/"
+                element={isLoggedIn ? <Dashboard /> : <Login setIsLoggedIn={setIsLoggedIn} />}
+              />
+              <Route path="/register" element={<Register />} />
+              <Route path="/user-stories" element={<UserStories />} />
+              <Route path="/chat" element={<Chat />} />
+              <Route path="/settings" element={<AccountSettings />} />
+            </Routes>
+          </main>
         </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
-    </>
+      </Router>
+    </NextUIProvider>
   )
 }
 
