@@ -12,7 +12,11 @@ export default defineConfig({
   renderer: {
     resolve: {
       alias: {
-        '@renderer': resolve('src/renderer/src')
+        '@renderer': resolve('src/renderer/src'),
+        '@domain': resolve('src/renderer/src/domain'),
+        '@application': resolve('src/renderer/src/application'),
+        '@infrastructure': resolve('src/renderer/src/infrastructure'),
+        '@presentation': resolve('src/renderer/src/presentation')
       }
     },
     plugins: [react()]

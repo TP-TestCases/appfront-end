@@ -16,32 +16,46 @@ import {
   useDisclosure
 } from '@nextui-org/react'
 import { Icon } from '@iconify/react'
+import { InMemoryUserStoryRepository } from '@renderer/infrastructure/InMemoryUserStoryRepository'
+import { UserStoryService } from '@renderer/application/UserStoryService'
+import { UserStory } from '@renderer/domain/userStory'
+
+const repository = new InMemoryUserStoryRepository([
+  {
+    id: 1,
+    title: 'Refine backlog ordering',
+    epic: 'Epic 001',
+    status: 'To Do'
+  },
+  {
+    id: 2,
+    title: 'Implement story import',
+    epic: 'Epic 001',
+    status: 'In Progress'
+  },
+  {
+    id: 3,
+    title: 'Validate acceptance criteria',
+    epic: 'Epic 001',
+    status: 'Done'
+  }
+])
+
+const userStoryService = new UserStoryService(repository)
 
 const UserStories: React.FC = () => {
-  const [stories, setStories] = React.useState([
-    {
-      id: 1,
-      title: 'Refine backlog ordering',
-      epic: 'Epic 001',
-      status: 'To Do'
-    },
-    {
-      id: 2,
-      title: 'Implement story import',
-      epic: 'Epic 001',
-      status: 'In Progress'
-    },
-    {
-      id: 3,
-      title: 'Validate acceptance criteria',
-      epic: 'Epic 001',
-      status: 'Done'
-    }
-  ])
-  const [filteredStories, setFilteredStories] = React.useState(stories)
+  const [stories, setStories] = React.useState<UserStory[]>([])
+  const [filteredStories, setFilteredStories] = React.useState<UserStory[]>([])
   const [searchQuery, setSearchQuery] = React.useState('')
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [editingStory, setEditingStory] = React.useState(null)
+
+  React.useEffect(() => {
+    userStoryService.getStories().then((data) => {
+      setStories(data)
+      setFilteredStories(data)
+    })
+  }, [])
 
   const handleSearch = (query: string): void => {
     setSearchQuery(query)
@@ -67,9 +81,15 @@ const UserStories: React.FC = () => {
 
   const handleSave = (updatedStory): void => {
     if (editingStory) {
-      setStories(stories.map((s) => (s.id === updatedStory.id ? updatedStory : s)))
+      const updated = stories.map((s) => (s.id === updatedStory.id ? updatedStory : s))
+      setStories(updated)
+      setFilteredStories(updated)
+      userStoryService.saveStories(updated)
     } else {
-      setStories([...stories, { ...updatedStory, id: stories.length + 1 }])
+      const newStories = [...stories, { ...updatedStory, id: stories.length + 1 }]
+      setStories(newStories)
+      setFilteredStories(newStories)
+      userStoryService.saveStories(newStories)
     }
     onClose()
   }
