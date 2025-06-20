@@ -15,3 +15,6 @@ packages-lock.json
 
 # electron
 out/
+
+# build
+build/
