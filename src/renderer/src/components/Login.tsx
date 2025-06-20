@@ -3,19 +3,15 @@ import { Card, CardHeader, CardBody, Input, Button } from '@nextui-org/react'
 import { Link, useNavigate } from 'react-router-dom'
 
 const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({ setIsLoggedIn }) => {
-  const [email, setEmail] = React.useState('')
+  const [username, setUsername] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [error, setError] = React.useState('')
   const navigate = useNavigate()
 
   const handleLogin = (): void => {
-    // Demo users
-    const demoUsers = [
-      { email: 'user@example.com', password: 'password123' },
-      { email: 'admin@example.com', password: 'admin123' }
-    ]
+    const demoUsers = [{ username: 'admin', password: 'admin123' }]
 
-    const user = demoUsers.find((u) => u.email === email && u.password === password)
+    const user = demoUsers.find((u) => u.username === username && u.password === password)
 
     if (user) {
       setIsLoggedIn(true)
@@ -24,6 +20,9 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({ setIsLog
       setError('Invalid credentials')
     }
   }
+
+  const showUsernameHint = username.length === 0
+  const showPasswordHint = password.length === 0
 
   return (
     <div className="flex justify-center items-center h-screen">
@@ -34,26 +33,36 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({ setIsLog
         </CardHeader>
         <CardBody className="space-y-4">
           <Input
-            label="Email"
-            type="email"
-            value={email}
-            onValueChange={setEmail}
-            placeholder="Enter your email"
+            type="text"
+            label={showUsernameHint ? 'Username' : undefined}
+            description={showUsernameHint ? 'Enter your username' : undefined}
+            placeholder={!showUsernameHint ? 'Enter your username' : undefined}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            fullWidth
+            required
           />
           <Input
-            label="Password"
             type="password"
+            label={showPasswordHint ? 'Password' : undefined}
+            description={showPasswordHint ? 'Enter your password' : undefined}
+            placeholder={!showPasswordHint ? 'Enter your password' : undefined}
             value={password}
-            onValueChange={setPassword}
-            placeholder="Enter your password"
+            onChange={(e) => setPassword(e.target.value)}
+            fullWidth
+            required
           />
-          {error && <p className="text-danger text-small">{error}</p>}
-          <Button color="primary" fullWidth onPress={handleLogin}>
+          {error && <p className="text-danger text-small ">{error}</p>}
+          <Button
+            className="bg-red-100 hover:bg-red-200 rounded-xl"
+            fullWidth
+            onPress={handleLogin}
+          >
             Login
           </Button>
           <p className="text-center text-small">
             Don&apos;t have an account?
-            <Link to="/register" className="text-primary">
+            <Link to="/register" className="text-primary hover:underline hover:text-blue-600">
               Register
             </Link>
           </p>
