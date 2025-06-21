@@ -2,8 +2,19 @@ import React from 'react'
 import { Card, CardBody, CardHeader, Button, Avatar } from '@nextui-org/react'
 import { Link } from 'react-router-dom'
 import { Icon } from '@iconify/react'
+import { DashboardService } from '@renderer/application/DashboardService'
+import { InMemoryDashboardRepository } from '@renderer/infrastructure/InMemoryDashboardRepository'
 
+const repository = new InMemoryDashboardRepository({ totalStories: 15, inProgress: 5, completed: 8 })
+const dashboardService = new DashboardService(repository)
 const Dashboard: React.FC = () => {
+  const [stats, setStats] = React.useState({ totalStories: 0, inProgress: 0, completed: 0 })
+
+  React.useEffect(() => {
+    dashboardService.getStats().then((s) => setStats(s))
+  }, [])
+
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -20,15 +31,15 @@ const Dashboard: React.FC = () => {
           <CardBody>
             <div className="flex justify-between items-center mb-4">
               <div>
-                <p className="text-2xl font-bold">15</p>
+                <p className="text-2xl font-bold">{stats.totalStories}</p>
                 <p className="text-small text-default-500">Total Stories</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-primary">5</p>
+                <p className="text-2xl font-bold text-primary">{stats.inProgress}</p>
                 <p className="text-small text-default-500">In Progress</p>
               </div>
               <div>
-                <p className="text-2xl font-bold text-success">8</p>
+                <p className="text-2xl font-bold text-success">{stats.completed}</p>
                 <p className="text-small text-default-500">Completed</p>
               </div>
             </div>

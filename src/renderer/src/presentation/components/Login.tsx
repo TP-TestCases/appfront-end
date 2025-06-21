@@ -1,6 +1,19 @@
 import React from 'react'
 import { Card, CardHeader, CardBody, Input, Button } from '@nextui-org/react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AuthService } from '@renderer/application/AuthService'
+import { InMemoryUserRepository } from '@renderer/infrastructure/InMemoryUserRepository'
+
+const repository = new InMemoryUserRepository([
+  {
+    id: 1,
+    username: 'admin',
+    password: 'admin123',
+    firstName: 'Admin',
+    lastName: 'User'
+  }
+])
+const authService = new AuthService(repository)
 
 const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({ setIsLoggedIn }) => {
   const [username, setUsername] = React.useState('')
@@ -8,10 +21,8 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({ setIsLog
   const [error, setError] = React.useState('')
   const navigate = useNavigate()
 
-  const handleLogin = (): void => {
-    const demoUsers = [{ username: 'admin', password: 'admin123' }]
-
-    const user = demoUsers.find((u) => u.username === username && u.password === password)
+  const handleLogin = async (): Promise<void> => {
+    const user = await authService.login(username, password)
 
     if (user) {
       setIsLoggedIn(true)

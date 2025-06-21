@@ -1,13 +1,27 @@
 import React from 'react'
 import { Card, CardHeader, CardBody, Button, Select, SelectItem } from '@nextui-org/react'
+import { SettingsService } from '@renderer/application/SettingsService'
+import { InMemorySettingsRepository } from '@renderer/infrastructure/InMemorySettingsRepository'
+import { Settings } from '@renderer/domain/settings'
+
+
+const repository = new InMemorySettingsRepository({ language: 'English', notifications: 'Enabled' })
+const settingsService = new SettingsService(repository)
 
 const AccountSettings: React.FC = () => {
   const [language, setLanguage] = React.useState('English')
   const [notifications, setNotifications] = React.useState('Enabled')
 
-  const handleSave = (): void => {
-    // Implement save logic here
-    console.log('Settings saved:', { language, notifications })
+  React.useEffect(() => {
+    settingsService.getSettings().then((s) => {
+      setLanguage(s.language)
+      setNotifications(s.notifications)
+    })
+  }, [])
+
+  const handleSave = async (): Promise<void> => {
+    const data: Settings = { language, notifications }
+    await settingsService.saveSettings(data)
   }
 
   return (

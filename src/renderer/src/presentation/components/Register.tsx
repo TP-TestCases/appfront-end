@@ -1,7 +1,12 @@
 import React from 'react'
 import { Card, CardHeader, CardBody, Input, Button } from '@nextui-org/react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AuthService } from '@renderer/application/AuthService'
+import { InMemoryUserRepository } from '@renderer/infrastructure/InMemoryUserRepository'
+import { User } from '@renderer/domain/user'
 
+const repository = new InMemoryUserRepository([])
+const authService = new AuthService(repository)
 const Register: React.FC = () => {
   const [firstName, setFirstName] = React.useState('')
   const [lastName, setLastName] = React.useState('')
@@ -10,12 +15,19 @@ const Register: React.FC = () => {
   const [error, setError] = React.useState('')
   const navigate = useNavigate()
 
-  const handleRegister = (): void => {
+  const handleRegister = async (): Promise<void> => {
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       return
     }
-    // Aquí iría la lógica de registro...
+    const newUser: User = {
+      id: Date.now(),
+      username: `${firstName.toLowerCase()}.${lastName.toLowerCase()}`,
+      password,
+      firstName,
+      lastName
+    }
+    await authService.register(newUser)
     navigate('/')
   }
 

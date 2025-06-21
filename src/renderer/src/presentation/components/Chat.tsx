@@ -1,32 +1,42 @@
 import React from 'react'
 import { Card, CardBody, CardHeader, Input, Button, Avatar } from '@nextui-org/react'
 import { Icon } from '@iconify/react'
+import { ChatService } from '@renderer/application/ChatService'
+import { InMemoryMessageRepository } from '@renderer/infrastructure/InMemoryMessageRepository'
+import { Message } from '@renderer/domain/message'
+
+const repository = new InMemoryMessageRepository([
+  { id: 1, sender: 'Alice', content: 'Hey, are you there?', timestamp: '10:30 AM' },
+  { id: 2, sender: 'You', content: "Yes, I'm here. What's up?", timestamp: '10:31 AM' },
+  {
+    id: 3,
+    sender: 'Alice',
+    content: 'Just wanted to check on the progress of the new feature.',
+    timestamp: '10:32 AM'
+  }
+])
+const chatService = new ChatService(repository)
 
 const Chat: React.FC = () => {
-  const [messages, setMessages] = React.useState([
-    { id: 1, sender: 'Alice', content: 'Hey, are you there?', timestamp: '10:30 AM' },
-    { id: 2, sender: 'You', content: "Yes, I'm here. What's up?", timestamp: '10:31 AM' },
-    {
-      id: 3,
-      sender: 'Alice',
-      content: 'Just wanted to check on the progress of the new feature.',
-      timestamp: '10:32 AM'
-    }
-  ])
+  const [messages, setMessages] = React.useState<Message[]>([])
+
+  React.useEffect(() => {
+    chatService.getMessages().then((m) => setMessages(m))
+  }, [])
 
   const [newMessage, setNewMessage] = React.useState('')
 
-  const handleSendMessage = (): void => {
+  const handleSendMessage = async (): Promise<void> => {
     if (newMessage.trim()) {
-      setMessages([
-        ...messages,
-        {
-          id: messages.length + 1,
-          sender: 'You',
-          content: newMessage,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ])
+      const message: Message = {
+        id: messages.length + 1,
+        sender: 'You',
+        content: newMessage,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+      await chatService.addMessage(message)
+      const updated = await chatService.getMessages()
+      setMessages(updated)
       setNewMessage('')
     }
   }

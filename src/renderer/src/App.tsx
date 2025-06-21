@@ -1,13 +1,13 @@
 import React from 'react'
 import { NextUIProvider } from '@nextui-org/react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import Dashboard from './components/Dashboard'
+import Dashboard from './presentation/components/Dashboard'
 import UserStories from './presentation/components/UserStories'
-import Chat from './components/Chat'
+import Chat from './presentation/components/Chat'
 import Sidebar from './components/Sidebar'
-import Login from './components/Login'
-import Register from './components/Register'
-import AccountSettings from './components/AccountSettings'
+import Login from './presentation/components/Login'
+import Register from './presentation/components/Register'
+import AccountSettings from './presentation/components/AccountSettings'
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false)
