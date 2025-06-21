@@ -1,7 +1,7 @@
 import React from 'react'
 import { Card, CardHeader, CardBody, Input, Button } from '@nextui-org/react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AuthService } from '@renderer/application/AuthService'
+import { AuthService } from '@renderer/application/auth/AuthService'
 
 const authService = new AuthService()
 

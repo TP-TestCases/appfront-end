@@ -1,5 +1,5 @@
-import { Message } from "@renderer/domain/message"
-import { MessageRepository } from "@renderer/infrastructure/MessageRepository"
+import { Message } from "@renderer/domain/chat/message"
+import { MessageRepository } from "@renderer/infrastructure/chat/MessageRepository"
 
 export class ChatService {
     constructor(private repository: MessageRepository) { }

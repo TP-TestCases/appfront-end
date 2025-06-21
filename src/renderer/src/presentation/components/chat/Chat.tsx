@@ -1,9 +1,9 @@
 import React from 'react'
 import { Card, CardBody, CardHeader, Input, Button, Avatar } from '@nextui-org/react'
 import { Icon } from '@iconify/react'
-import { ChatService } from '@renderer/application/ChatService'
-import { InMemoryMessageRepository } from '@renderer/infrastructure/InMemoryMessageRepository'
-import { Message } from '@renderer/domain/message'
+import { InMemoryMessageRepository } from '@renderer/infrastructure/chat/InMemoryMessageRepository'
+import { ChatService } from '@renderer/application/chat/ChatService'
+import { Message } from '@renderer/domain/chat/message'
 
 const repository = new InMemoryMessageRepository([
   { id: 1, sender: 'Alice', content: 'Hey, are you there?', timestamp: '10:30 AM' },

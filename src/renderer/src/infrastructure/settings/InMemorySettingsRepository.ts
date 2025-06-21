@@ -1,4 +1,4 @@
-import { Settings } from '../domain/settings'
+import { Settings } from '@renderer/domain/settings/settings'
 import { SettingsRepository } from './SettingsRepository'
 
 export class InMemorySettingsRepository implements SettingsRepository {

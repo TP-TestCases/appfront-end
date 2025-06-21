@@ -1,4 +1,4 @@
-import { User } from '../domain/user'
+import { User } from '../../domain/auth/user'
 
 export interface UserRepository {
     list(): Promise<User[]>

@@ -16,9 +16,9 @@ import {
   useDisclosure
 } from '@nextui-org/react'
 import { Icon } from '@iconify/react'
-import { InMemoryUserStoryRepository } from '@renderer/infrastructure/InMemoryUserStoryRepository'
-import { UserStoryService } from '@renderer/application/UserStoryService'
-import { UserStory } from '@renderer/domain/userStory'
+import { InMemoryUserStoryRepository } from '@renderer/infrastructure/userstories/InMemoryUserStoryRepository'
+import { UserStoryService } from '@renderer/application/userstories/UserStoryService'
+import { UserStory } from '@renderer/domain/userstories/userStory'
 
 const repository = new InMemoryUserStoryRepository([
   {

@@ -1,9 +1,9 @@
 import React from 'react'
-import { Card, CardBody, CardHeader, Button, Avatar } from '@nextui-org/react'
+import { Card, CardBody, CardHeader, Button } from '@nextui-org/react'
 import { Link } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import { DashboardService } from '@renderer/application/DashboardService'
-import { InMemoryDashboardRepository } from '@renderer/infrastructure/InMemoryDashboardRepository'
+import { DashboardService } from '@renderer/application/dashboard/DashboardService'
+import { InMemoryDashboardRepository } from '@renderer/infrastructure/dashboard/InMemoryDashboardRepository'
 
 const repository = new InMemoryDashboardRepository({ totalStories: 15, inProgress: 5, completed: 8 })
 const dashboardService = new DashboardService(repository)
@@ -49,7 +49,7 @@ const Dashboard: React.FC = () => {
             </Button>
           </CardBody>
         </Card>
-        <Card>
+        {/* <Card>
           <CardHeader className="flex justify-between items-center">
             <h2 className="text-lg font-semibold">Recent Chat Activity</h2>
             <Link to="/chat">
@@ -78,7 +78,7 @@ const Dashboard: React.FC = () => {
               </li>
             </ul>
           </CardBody>
-        </Card>
+        </Card> */}
       </div>
     </div>
   )

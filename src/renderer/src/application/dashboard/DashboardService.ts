@@ -1,5 +1,5 @@
-import { DashboardStats } from "@renderer/domain/dashboard";
-import { DashboardRepository } from "@renderer/infrastructure/DashboardRepository";
+import { DashboardStats } from "@renderer/domain/dashboard/dashboard";
+import { DashboardRepository } from "@renderer/infrastructure/dashboard/DashboardRepository";
 
 export class DashboardService {
     constructor(private repository: DashboardRepository) { }

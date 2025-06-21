@@ -1,4 +1,4 @@
-import { Message } from '@renderer/domain/message'
+import { Message } from '@renderer/domain/chat/message'
 import { MessageRepository } from './MessageRepository'
 
 export class InMemoryMessageRepository implements MessageRepository {

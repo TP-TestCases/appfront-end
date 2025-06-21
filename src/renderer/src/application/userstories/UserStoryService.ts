@@ -1,5 +1,5 @@
-import { UserStory } from '../domain/userStory'
-import { UserStoryRepository } from '../infrastructure/UserStoryRepository'
+import { UserStory } from '@renderer/domain/userstories/userStory'
+import { UserStoryRepository } from '@renderer/infrastructure/userstories/UserStoryRepository'
 
 export class UserStoryService {
     constructor(private repository: UserStoryRepository) { }

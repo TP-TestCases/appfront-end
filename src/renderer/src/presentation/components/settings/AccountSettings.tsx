@@ -1,8 +1,8 @@
 import React from 'react'
 import { Card, CardHeader, CardBody, Button, Select, SelectItem } from '@nextui-org/react'
-import { SettingsService } from '@renderer/application/SettingsService'
-import { InMemorySettingsRepository } from '@renderer/infrastructure/InMemorySettingsRepository'
-import { Settings } from '@renderer/domain/settings'
+import { InMemorySettingsRepository } from '@renderer/infrastructure/settings/InMemorySettingsRepository'
+import { SettingsService } from '@renderer/application/settings/SettingsService'
+import { Settings } from '@renderer/domain/settings/settings'
 
 
 const repository = new InMemorySettingsRepository({ language: 'English', notifications: 'Enabled' })

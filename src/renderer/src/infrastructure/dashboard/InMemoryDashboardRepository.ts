@@ -1,4 +1,4 @@
-import { DashboardStats } from '../domain/dashboard'
+import { DashboardStats } from '../../domain/dashboard/dashboard'
 import { DashboardRepository } from './DashboardRepository'
 
 export class InMemoryDashboardRepository implements DashboardRepository {

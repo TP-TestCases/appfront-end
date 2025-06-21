@@ -1,4 +1,4 @@
-import { DashboardStats } from '../domain/dashboard'
+import { DashboardStats } from "@renderer/domain/dashboard/dashboard";
 
 export interface DashboardRepository {
     load(): Promise<DashboardStats>

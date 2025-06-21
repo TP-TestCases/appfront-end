@@ -1,4 +1,4 @@
-import { User } from '@renderer/domain/user'
+import { User } from '@renderer/domain/auth/user'
 
 export interface RegisterPayload {
     firstName: string

@@ -1,4 +1,4 @@
-import { UserStory } from '../domain/userStory'
+import { UserStory } from "@renderer/domain/userstories/userStory"
 
 export interface UserStoryRepository {
     list(): Promise<UserStory[]>

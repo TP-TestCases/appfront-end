@@ -1,5 +1,5 @@
-import { Settings } from "@renderer/domain/settings"
-import { SettingsRepository } from "@renderer/infrastructure/SettingsRepository"
+import { Settings } from "@renderer/domain/settings/settings"
+import { SettingsRepository } from "@renderer/infrastructure/settings/SettingsRepository"
 
 export class SettingsService {
     constructor(private repository: SettingsRepository) { }

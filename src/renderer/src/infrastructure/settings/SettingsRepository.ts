@@ -1,4 +1,4 @@
-import { Settings } from '../domain/settings'
+import { Settings } from "@renderer/domain/settings/settings"
 
 export interface SettingsRepository {
     load(): Promise<Settings>

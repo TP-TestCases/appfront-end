@@ -1,4 +1,4 @@
-import { Message } from '../domain/message'
+import { Message } from "@renderer/domain/chat/message"
 
 export interface MessageRepository {
     list(): Promise<Message[]>

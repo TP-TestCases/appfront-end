@@ -1,4 +1,4 @@
-import { UserStory } from '../domain/userStory'
+import { UserStory } from '@renderer/domain/userstories/userStory'
 import { UserStoryRepository } from './UserStoryRepository'
 
 export class InMemoryUserStoryRepository implements UserStoryRepository {
