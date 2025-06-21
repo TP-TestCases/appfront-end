@@ -31,6 +31,18 @@ const Sidebar: React.FC = () => {
           <li>
             <Button
               as={Link}
+              to="/projects"
+              variant={isActive('/projects') ? 'solid' : 'light'}
+              color={isActive('/projects') ? 'primary' : 'default'}
+              startContent={<Icon icon="lucide:folder-kanban" />}
+              className="w-full justify-start"
+            >
+              Projects
+            </Button>
+          </li>
+          <li>
+            <Button
+              as={Link}
               to="/user-stories"
               variant={isActive('/user-stories') ? 'solid' : 'light'}
               color={isActive('/user-stories') ? 'primary' : 'default'}
