@@ -97,6 +97,12 @@ const UserStories: React.FC = () => {
     // Implement import functionality
   }
 
+  const statusOptions = [
+    { label: 'To Do', value: 'To Do' },
+    { label: 'In Progress', value: 'In Progress' },
+    { label: 'Done', value: 'Done' }
+  ]
+
   const fields = [
     {
       name: 'title',
@@ -117,7 +123,10 @@ const UserStories: React.FC = () => {
       label: 'Status',
       value: form.status,
       onChange: (value: string) => setForm((f) => ({ ...f, status: value })),
-      required: true
+      required: true,
+      type: "select" as const,
+      options: statusOptions,
+      placeholder: 'Select status'
     }
   ]
 
