@@ -8,6 +8,7 @@ import Sidebar from './components/Sidebar'
 import Login from './presentation/components/Login'
 import Register from './presentation/components/Register'
 import AccountSettings from './presentation/components/AccountSettings'
+import Projects from './presentation/components/Projects'
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false)
@@ -24,6 +25,7 @@ const App: React.FC = () => {
                 element={isLoggedIn ? <Dashboard /> : <Login setIsLoggedIn={setIsLoggedIn} />}
               />
               <Route path="/register" element={<Register />} />
+              <Route path="/projects" element={<Projects />} />
               <Route path="/user-stories" element={<UserStories />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/settings" element={<AccountSettings />} />
