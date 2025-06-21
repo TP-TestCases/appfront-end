@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Button } from '@nextui-org/react'
+import { Button, Listbox, ListboxItem } from '@nextui-org/react'
 import { Icon } from '@iconify/react'
 
 const Sidebar: React.FC = () => {
@@ -78,6 +78,20 @@ const Sidebar: React.FC = () => {
           </li>
         </ul>
       </nav>
+      <div className="mt-8">
+        <Listbox aria-label="User actions">
+          <ListboxItem
+            key="logout"
+            startContent={<Icon icon="lucide:log-out" />}
+            className="text-danger cursor-pointer"
+            onClick={() => {
+              window.location.href = '/';
+            }}
+          >
+            Logout
+          </ListboxItem>
+        </Listbox>
+      </div>
     </aside>
   )
 }
