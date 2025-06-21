@@ -8,14 +8,10 @@ import {
     TableCell,
     Input,
     Button,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
     useDisclosure
 } from '@nextui-org/react'
 import { Icon } from '@iconify/react'
+import EditCreateModal from '../shared/EditCreateModal'
 
 interface Project {
     id: number
@@ -78,6 +74,23 @@ const Projects: React.FC = () => {
         onClose()
     }
 
+    const fields = [
+        {
+            name: 'name',
+            label: 'Name',
+            value: form.name,
+            onChange: (value: string) => setForm((f) => ({ ...f, name: value })),
+            required: true
+        },
+        {
+            name: 'description',
+            label: 'Description',
+            value: form.description,
+            onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
+            required: true
+        }
+    ]
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -114,39 +127,13 @@ const Projects: React.FC = () => {
                     ))}
                 </TableBody>
             </Table>
-            <Modal isOpen={isOpen} onClose={onClose}>
-                <ModalContent>
-                    {(onClose) => (
-                        <>
-                            <ModalHeader>{editingProject ? 'Edit Project' : 'Create Project'}</ModalHeader>
-                            <ModalBody>
-                                <Input
-                                    label="Name"
-                                    value={form.name}
-                                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                    fullWidth
-                                    required
-                                />
-                                <Input
-                                    label="Description"
-                                    value={form.description}
-                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                    fullWidth
-                                    required
-                                />
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button color="danger" variant="light" onPress={onClose}>
-                                    Cancel
-                                </Button>
-                                <Button color="primary" onPress={handleSave}>
-                                    Save
-                                </Button>
-                            </ModalFooter>
-                        </>
-                    )}
-                </ModalContent>
-            </Modal>
+            <EditCreateModal
+                isOpen={isOpen}
+                onClose={onClose}
+                onSave={handleSave}
+                title={editingProject ? 'Edit Project' : 'Create Project'}
+                fields={fields}
+            />
         </div>
     )
 }

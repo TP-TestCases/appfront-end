@@ -8,17 +8,13 @@ import {
   TableCell,
   Input,
   Button,
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
   useDisclosure
 } from '@nextui-org/react'
 import { Icon } from '@iconify/react'
 import { InMemoryUserStoryRepository } from '@renderer/infrastructure/userstories/InMemoryUserStoryRepository'
 import { UserStoryService } from '@renderer/application/userstories/UserStoryService'
 import { UserStory } from '@renderer/domain/userstories/userStory'
+import EditCreateModal from '../shared/EditCreateModal'
 
 const repository = new InMemoryUserStoryRepository([
   {
@@ -49,6 +45,7 @@ const UserStories: React.FC = () => {
   const [searchQuery, setSearchQuery] = React.useState('')
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [editingStory, setEditingStory] = React.useState(null)
+  const [form, setForm] = React.useState({ title: '', epic: '', status: '' })
 
   React.useEffect(() => {
     userStoryService.getStories().then((data) => {
@@ -71,11 +68,13 @@ const UserStories: React.FC = () => {
 
   const handleEdit = (story): void => {
     setEditingStory(story)
+    setForm({ title: story.title, epic: story.epic, status: story.status })
     onOpen()
   }
 
   const handleCreate = (): void => {
     setEditingStory(null)
+    setForm({ title: '', epic: '', status: '' })
     onOpen()
   }
 
@@ -97,6 +96,30 @@ const UserStories: React.FC = () => {
   const handleImport = (): void => {
     // Implement import functionality
   }
+
+  const fields = [
+    {
+      name: 'title',
+      label: 'Title',
+      value: form.title,
+      onChange: (value: string) => setForm((f) => ({ ...f, title: value })),
+      required: true
+    },
+    {
+      name: 'epic',
+      label: 'Epic',
+      value: form.epic,
+      onChange: (value: string) => setForm((f) => ({ ...f, epic: value })),
+      required: true
+    },
+    {
+      name: 'status',
+      label: 'Status',
+      value: form.status,
+      onChange: (value: string) => setForm((f) => ({ ...f, status: value })),
+      required: true
+    }
+  ]
 
   return (
     <div className="space-y-6">
@@ -142,24 +165,19 @@ const UserStories: React.FC = () => {
           ))}
         </TableBody>
       </Table>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader>{editingStory ? 'Edit Story' : 'Create Story'}</ModalHeader>
-              <ModalBody>{/* Form fields for editing/creating story */}</ModalBody>
-              <ModalFooter>
-                <Button color="danger" variant="light" onPress={onClose}>
-                  Cancel
-                </Button>
-                <Button color="primary" onPress={() => handleSave(editingStory)}>
-                  Save
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+      <EditCreateModal
+        isOpen={isOpen}
+        onClose={onClose}
+        onSave={() => {
+          if (editingStory) {
+            handleSave({ ...editingStory as UserStory, ...form })
+          } else {
+            handleSave(form)
+          }
+        }}
+        title={editingStory ? 'Edit Story' : 'Create Story'}
+        fields={fields}
+      />
     </div>
   )
 }
