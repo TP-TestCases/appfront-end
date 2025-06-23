@@ -1,15 +1,15 @@
 import React from 'react'
 import { NextUIProvider } from '@nextui-org/react'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import Dashboard from './presentation/components/dashboard/Dashboard'
-import UserStories from './presentation/components/userstories/UserStories'
-import Chat from './presentation/components/chat/Chat'
-import Sidebar from './presentation/components/shared/Sidebar'
-import Login from './presentation/components/auth/Login'
-import Register from './presentation/components/auth/Register'
-import AccountSettings from './presentation/components/settings/AccountSettings'
-import Projects from './presentation/components/projects/Projects'
-import Epics from './presentation/components/epics/Epics'
+import Sidebar from './shared/components/Sidebar';
+import Dashboard from './dashboard/presentation/components/Dashboard';
+import Login from './auth/presentation/components/Login';
+import Register from './auth/presentation/components/Register';
+import Projects from './projects/presentation/components/Projects';
+import UserStories from './userstories/presentation/components/UserStories';
+import Chat from './chat/presentation/components/Chat';
+import AccountSettings from './settings/presentation/components/AccountSettings';
+import Epics from './epics/presentation/components/Epics';
 
 const AppRoutes: React.FC<{ isLoggedIn: boolean; setIsLoggedIn: (v: boolean) => void }> = ({
   isLoggedIn,

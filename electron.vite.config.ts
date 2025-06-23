@@ -13,10 +13,14 @@ export default defineConfig({
     resolve: {
       alias: {
         '@renderer': resolve('src/renderer/src'),
-        '@domain': resolve('src/renderer/src/domain'),
-        '@application': resolve('src/renderer/src/application'),
-        '@infrastructure': resolve('src/renderer/src/infrastructure'),
-        '@presentation': resolve('src/renderer/src/presentation')
+        '@auth': resolve('src/renderer/src/auth'),
+        '@chat': resolve('src/renderer/src/chat'),
+        '@dashboard': resolve('src/renderer/src/dashboard'),
+        '@epics': resolve('src/renderer/src/epics'),
+        '@projects': resolve('src/renderer/src/projects'),
+        '@settings': resolve('src/renderer/src/settings'),
+        '@userstories': resolve('src/renderer/src/userstories'),
+        '@shared': resolve('src/renderer/src/shared'),
       }
     },
     plugins: [react()]
