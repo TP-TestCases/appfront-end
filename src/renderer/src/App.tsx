@@ -9,6 +9,7 @@ import Login from './presentation/components/auth/Login'
 import Register from './presentation/components/auth/Register'
 import AccountSettings from './presentation/components/settings/AccountSettings'
 import Projects from './presentation/components/projects/Projects'
+import Epics from './presentation/components/epics/Epics'
 
 const AppRoutes: React.FC<{ isLoggedIn: boolean; setIsLoggedIn: (v: boolean) => void }> = ({
   isLoggedIn,
@@ -30,6 +31,7 @@ const AppRoutes: React.FC<{ isLoggedIn: boolean; setIsLoggedIn: (v: boolean) => 
           <Route path="/user-stories" element={<UserStories />} />
           <Route path="/chat" element={<Chat />} />
           <Route path="/settings" element={<AccountSettings />} />
+          <Route path="/epics" element={<Epics />} />
         </Routes>
       </main>
     </div>
