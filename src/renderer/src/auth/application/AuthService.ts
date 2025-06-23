@@ -1,4 +1,4 @@
-import { User } from '@renderer/domain/auth/user'
+import { User } from "../domain/user"
 
 export interface RegisterPayload {
     firstName: string
@@ -12,8 +12,10 @@ export interface LoginPayload {
     password: string
 }
 
+const API_URL = import.meta.env.VITE_API_URL
+
 export class AuthService {
-    constructor(private baseUrl = 'http://localhost:8000') { }
+    constructor(private baseUrl = API_URL) { }
 
     async login(payload: LoginPayload): Promise<User | null> {
         const response = await fetch(`${this.baseUrl}/auth/login`, {
