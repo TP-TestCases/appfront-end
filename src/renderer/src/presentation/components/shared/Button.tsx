@@ -13,7 +13,7 @@ export interface AppButtonProps extends Omit<ButtonProps, 'color'> {
 
 const TONE_CLASSES: Record<string, string> = {
     primary: 'bg-blue-500 hover:bg-blue-400 text-white',
-    danger: 'bg-red-500  hover:bg-red-400  text-white',
+    danger: 'bg-white text-red-500 hover:bg-red-200',
     default: 'bg-gray-300 hover:bg-gray-200 text-gray-700'
 }
 
@@ -40,7 +40,7 @@ export const Buttons: React.FC<AppButtonProps> = ({
             color={flat ? undefined : tone}
             onPress={onPress}
             onClick={onClick}
-            className={`${full} py-2 font-medium ${radius} ${toneCls} ${className}`}
+            className={`${full} py-2 font-medium ${radius} ${toneCls} transition  duration-300 cursor-pointer ${className}`}
         >
             {children}
         </Button>
