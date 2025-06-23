@@ -19,8 +19,19 @@ const AppRoutes: React.FC<{ isLoggedIn: boolean; setIsLoggedIn: (v: boolean) => 
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
-      {isLoggedIn && <Sidebar />}
-      <main className={`flex-grow ${shouldPad ? 'p-8' : ''}`}>
+      {isLoggedIn && (
+        <aside className="w-64 bg-content1 h-screen p-4 flex flex-col fixed left-0 top-0 bottom-0 z-40">
+          <Sidebar />
+        </aside>
+      )}
+      <main
+        className={`
+          flex-grow
+          ${shouldPad ? 'p-8' : ''}
+          ${isLoggedIn ? 'ml-64 h-screen overflow-y-auto' : ''}
+          ${!isLoggedIn ? 'h-screen flex items-center justify-center overflow-hidden' : ''}
+        `}
+      >
         <Routes>
           <Route
             path="/"
