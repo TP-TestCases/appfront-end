@@ -2,6 +2,7 @@ import React from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AuthService } from '@renderer/application/auth/AuthService'
 import FormField from '../shared/FormField'
+import { Buttons } from '../shared/Button'
 
 const authService = new AuthService()
 
@@ -68,12 +69,9 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
             <p className="text-red-500 text-sm text-center">{error}</p>
           )}
 
-          <button
-            type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-400 text-white rounded-md py-2 font-medium"
-          >
+          <Buttons type="submit">
             Login
-          </button>
+          </Buttons>
 
           <p className="text-center text-sm text-gray-600">
             Don&apos;t have an account?{' '}
