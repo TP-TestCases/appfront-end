@@ -1,28 +1,72 @@
 import React from 'react'
-import { Card, CardHeader, CardBody, Input, Button } from '@nextui-org/react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AuthService } from '@renderer/application/auth/AuthService'
+import FormField from '../shared/FormField'
 
 const authService = new AuthService()
 const Register: React.FC = () => {
-  const [firstName, setFirstName] = React.useState('')
-  const [lastName, setLastName] = React.useState('')
-  const [password, setPassword] = React.useState('')
-  const [confirmPassword, setConfirmPassword] = React.useState('')
+  const [form, setForm] = React.useState({
+    firstName: '',
+    lastName: '',
+    password: '',
+    confirmPassword: ''
+  })
   const [error, setError] = React.useState('')
   const navigate = useNavigate()
 
-  const handleRegister = async (): Promise<void> => {
-    if (password !== confirmPassword) {
+  const inputs = [
+    {
+      id: 'firstName',
+      label: 'First Name',
+      value: form.firstName,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm({ ...form, firstName: e.target.value }),
+      placeholder: 'Enter your first name',
+      required: true,
+    },
+    {
+      id: 'lastName',
+      label: 'Last Name',
+      value: form.lastName,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm({ ...form, lastName: e.target.value }),
+      placeholder: 'Enter your last name',
+      required: true,
+    },
+    {
+      id: 'password',
+      label: 'Password',
+      type: 'password',
+      value: form.password,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm({ ...form, password: e.target.value }),
+      placeholder: 'Create a password',
+      required: true,
+    },
+    {
+      id: 'confirmPassword',
+      label: 'Confirm Password',
+      type: 'password',
+      value: form.confirmPassword,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm({ ...form, confirmPassword: e.target.value }),
+      placeholder: 'Re-enter your password',
+      required: true,
+    },
+  ]
+
+  const handleRegister = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault()
+    if (form.password !== form.confirmPassword) {
       setError('Passwords do not match')
       return
     }
     try {
       await authService.register({
-        firstName,
-        lastName,
-        password,
-        confirmPassword
+        firstName: form.firstName,
+        lastName: form.lastName,
+        password: form.password,
+        confirmPassword: form.confirmPassword
       })
       navigate('/')
     } catch (e) {
@@ -30,81 +74,36 @@ const Register: React.FC = () => {
     }
   }
 
-  const showFirstNameHint = firstName.length === 0
-  const showLastNameHint = lastName.length === 0
-  const showPasswordHint = password.length === 0
-  const showConfirmPasswordHint = confirmPassword.length === 0
-
   return (
-    <div className="flex justify-center items-center h-screen">
-      <Card className="w-full max-w-md">
-        <CardHeader className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold">Register</h1>
-          <p className="text-small text-default-500">Create your account</p>
-        </CardHeader>
-        <CardBody className="space-y-4">
-          <Input
-            type="text"
-            label={showFirstNameHint ? 'First Name' : undefined}
-            description={showFirstNameHint ? 'Enter your first name' : undefined}
-            placeholder={!showFirstNameHint ? 'Enter your first name' : undefined}
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            fullWidth
-            required
-          />
+    <div className="flex justify-center items-center h-screen bg-gray-100 px-4">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg px-6 py-8">
+        <h1 className="text-center text-2xl font-bold mb-1">Register</h1>
+        <p className="text-center text-sm text-gray-500 mb-6">
+          Create your account
+        </p>
 
-          <Input
-            type="text"
-            label={showLastNameHint ? 'Last Name' : undefined}
-            description={showLastNameHint ? 'Enter your last name' : undefined}
-            placeholder={!showLastNameHint ? 'Enter your last name' : undefined}
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            fullWidth
-            required
-          />
+        <form onSubmit={handleRegister} className="space-y-4">
+          {inputs.map((props) => (
+            <FormField key={props.id} {...props} />
+          ))}
 
-          <Input
-            type="password"
-            label={showPasswordHint ? 'Password' : undefined}
-            description={showPasswordHint ? 'Create a password' : undefined}
-            placeholder={!showPasswordHint ? 'Create a password' : undefined}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            fullWidth
-            required
-          />
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-          <Input
-            type="password"
-            label={showConfirmPasswordHint ? 'Confirm Password' : undefined}
-            description={showConfirmPasswordHint ? 'Re-enter your password' : undefined}
-            placeholder={!showConfirmPasswordHint ? 'Re-enter your password' : undefined}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            fullWidth
-            required
-          />
-
-          {error && <p className="text-danger text-small">{error}</p>}
-
-          <Button
-            className="bg-red-100 hover:bg-red-200 rounded-xl"
-            fullWidth
-            onPress={handleRegister}
+          <button
+            type="submit"
+            className="w-full bg-blue-500 hover:bg-blue-400 text-white rounded-md py-2 font-medium"
           >
             Register
-          </Button>
+          </button>
 
-          <p className="text-center text-small">
+          <p className="text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/" className="text-primary hover:underline hover:text-blue-600">
+            <Link to="/" className="text-blue-500 hover:underline">
               Login
             </Link>
           </p>
-        </CardBody>
-      </Card>
+        </form>
+      </div>
     </div>
   )
 }

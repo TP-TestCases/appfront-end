@@ -1,73 +1,88 @@
 import React from 'react'
-import { Card, CardHeader, CardBody, Input, Button } from '@nextui-org/react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AuthService } from '@renderer/application/auth/AuthService'
+import FormField from '../shared/FormField'
 
 const authService = new AuthService()
 
-const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({ setIsLoggedIn }) => {
-  const [username, setUsername] = React.useState('')
-  const [password, setPassword] = React.useState('')
+const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
+  setIsLoggedIn,
+}) => {
+  const [form, setForm] = React.useState({ username: '', password: '' })
   const [error, setError] = React.useState('')
   const navigate = useNavigate()
 
-  const handleLogin = async (): Promise<void> => {
+  const inputs = [
+    {
+      id: 'username',
+      label: 'Username',
+      type: 'text',
+      value: form.username,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm({ ...form, username: e.target.value }),
+      placeholder: 'Enter your username',
+      required: true,
+    },
+    {
+      id: 'password',
+      label: 'Password',
+      type: 'password',
+      value: form.password,
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm({ ...form, password: e.target.value }),
+      placeholder: 'Enter your password',
+      required: true,
+    },
+  ]
+
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
+    e.preventDefault()
+    setError('')
     try {
-      await authService.login({ username, password })
+      await authService.login({ username: form.username, password: form.password })
       setIsLoggedIn(true)
       navigate('/')
-    } catch (e) {
-      setError((e as Error).message)
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        setError(e.message)
+      } else {
+        setError('An unknown error occurred')
+      }
     }
   }
 
-  const showUsernameHint = username.length === 0
-  const showPasswordHint = password.length === 0
-
   return (
-    <div className="flex justify-center items-center h-screen">
-      <Card className="w-full max-w-md">
-        <CardHeader className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold">Login</h1>
-          <p className="text-small text-default-500">Enter your credentials to continue</p>
-        </CardHeader>
-        <CardBody className="space-y-4">
-          <Input
-            type="text"
-            label={showUsernameHint ? 'Username' : undefined}
-            description={showUsernameHint ? 'Enter your username' : undefined}
-            placeholder={!showUsernameHint ? 'Enter your username' : undefined}
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            fullWidth
-            required
-          />
-          <Input
-            type="password"
-            label={showPasswordHint ? 'Password' : undefined}
-            description={showPasswordHint ? 'Enter your password' : undefined}
-            placeholder={!showPasswordHint ? 'Enter your password' : undefined}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            fullWidth
-            required
-          />
-          {error && <p className="text-danger text-small ">{error}</p>}
-          <Button
-            className="bg-red-100 hover:bg-red-200 rounded-xl"
-            fullWidth
-            onPress={handleLogin}
+    <div className="flex justify-center items-center h-screen bg-gray-100 px-4">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-lg px-6 py-8">
+        <h1 className="text-center text-2xl font-bold mb-1">Login</h1>
+        <p className="text-center text-sm text-gray-500 mb-6">
+          Enter your credentials to continue
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {inputs.map((props) => (
+            <FormField key={props.id} {...props} />
+          ))}
+
+          {error && (
+            <p className="text-red-500 text-sm text-center">{error}</p>
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-blue-500 hover:bg-blue-400 text-white rounded-md py-2 font-medium"
           >
             Login
-          </Button>
-          <p className="text-center text-small">
-            Don&apos;t have an account?
-            <Link to="/register" className="text-primary hover:underline hover:text-blue-600">
+          </button>
+
+          <p className="text-center text-sm text-gray-600">
+            Don&apos;t have an account?{' '}
+            <Link to="/register" className="text-blue-500 hover:underline">
               Register
             </Link>
           </p>
-        </CardBody>
-      </Card>
+        </form>
+      </div>
     </div>
   )
 }
