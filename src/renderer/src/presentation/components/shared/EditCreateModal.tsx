@@ -1,5 +1,7 @@
 import React from 'react'
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input } from '@nextui-org/react'
+import { Icon } from '@iconify/react'
+import FormField from './FormField'
+import { Buttons } from './Button'
 
 interface Field {
     name: string
@@ -8,7 +10,7 @@ interface Field {
     onChange: (value: string) => void
     required?: boolean
     type?: 'text' | 'select' | 'date' | 'number' | 'password'
-    options?: { label: string; value: string }[] // para select
+    options?: { label: string; value: string }[]
     placeholder?: string
 }
 
@@ -29,72 +31,96 @@ const EditCreateModal: React.FC<EditCreateModalProps> = ({
     title,
     fields,
     saveLabel = 'Save',
-    cancelLabel = 'Cancel'
+    cancelLabel = 'Cancel',
 }) => {
+    if (!isOpen) return null
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose}>
-            <ModalContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg shadow-lg">
-                {(onClose) => (
-                    <>
-                        <ModalHeader>{title}</ModalHeader>
-                        <ModalBody>
-                            {fields.map((field) => {
-                                if (field.type === 'select' && field.options) {
-                                    return (
-                                        <select
-                                            key={field.name}
-                                            value={field.value}
-                                            onChange={(e) => field.onChange(e.target.value)}
-                                            required={field.required}
-                                            className="w-full p-2 rounded border border-gray-300 dark:bg-gray-800 dark:text-white mb-2"
-                                        >
-                                            <option value="" disabled>{field.placeholder || `Select ${field.label}`}</option>
-                                            {field.options.map((opt) => (
-                                                <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                            ))}
-                                        </select>
-                                    )
-                                }
-                                if (field.type === 'date') {
-                                    return (
-                                        <Input
-                                            key={field.name}
-                                            type="date"
-                                            label={field.label}
-                                            value={field.value}
-                                            onChange={(e) => field.onChange(e.target.value)}
-                                            fullWidth
-                                            required={field.required}
-                                            placeholder={field.placeholder}
-                                        />
-                                    )
-                                }
-                                return (
-                                    <Input
-                                        key={field.name}
-                                        type={field.type || 'text'}
-                                        label={field.label}
+        <>
+            <div
+                className="fixed inset-0 bg-black/30 backdrop-blur-none w-screen h-screen z-40"
+                onClick={onClose}
+            />
+
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl shadow-lg w-full max-w-lg overflow-hidden">
+
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+                        <button
+                            onClick={onClose}
+                            className="text-gray-400 hover:text-gray-600"
+                            aria-label="Close modal"
+                        >
+                            <Icon icon="mdi:close" className="h-5 w-5" />
+                        </button>
+                    </div>
+
+                    <div className="px-6 py-4 space-y-4">
+                        {fields.map((field) =>
+                            field.type === 'select' && field.options ? (
+                                <div key={field.name}>
+                                    <label
+                                        htmlFor={field.name}
+                                        className="block text-xs font-medium text-gray-600 mb-1"
+                                    >
+                                        {field.label}
+                                    </label>
+                                    <select
+                                        id={field.name}
                                         value={field.value}
                                         onChange={(e) => field.onChange(e.target.value)}
-                                        fullWidth
                                         required={field.required}
-                                        placeholder={field.placeholder}
-                                    />
-                                )
-                            })}
-                        </ModalBody>
-                        <ModalFooter>
-                            <Button color="danger" variant="light" onPress={onClose}>
-                                {cancelLabel}
-                            </Button>
-                            <Button color="primary" onPress={onSave}>
-                                {saveLabel}
-                            </Button>
-                        </ModalFooter>
-                    </>
-                )}
-            </ModalContent>
-        </Modal>
+                                        className="w-full bg-gray-50 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                    >
+                                        <option value="" disabled>
+                                            {field.placeholder ?? `Select ${field.label}`}
+                                        </option>
+                                        {field.options.map((opt) => (
+                                            <option key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            ) : (
+                                <FormField
+                                    key={field.name}
+                                    id={field.name}
+                                    label={field.label}
+                                    type={field.type === 'password' ? 'password' : field.type ?? 'text'}
+                                    value={field.value}
+                                    onChange={(e) => field.onChange(e.target.value)}
+                                    placeholder={field.placeholder}
+                                    required={field.required}
+                                />
+                            )
+                        )}
+                    </div>
+
+                    <div className="flex justify-end px-6 py-4 border-t border-gray-200 space-x-3">
+                        <Buttons
+                            type="button"
+                            tone="danger"
+                            flat
+                            fullWidth={false}
+                            onClick={onClose}
+                        >
+                            {cancelLabel}
+                        </Buttons>
+                        <Buttons
+                            type="button"
+                            tone="primary"
+                            flat
+                            fullWidth={false}
+                            onClick={onSave}
+                        >
+                            {saveLabel}
+                        </Buttons>
+                    </div>
+                </div>
+            </div>
+        </>
     )
 }
 
