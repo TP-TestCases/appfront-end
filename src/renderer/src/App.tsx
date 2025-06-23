@@ -10,28 +10,39 @@ import Register from './presentation/components/auth/Register'
 import AccountSettings from './presentation/components/settings/AccountSettings'
 import Projects from './presentation/components/projects/Projects'
 
+const AppRoutes: React.FC<{ isLoggedIn: boolean; setIsLoggedIn: (v: boolean) => void }> = ({
+  isLoggedIn,
+  setIsLoggedIn
+}) => {
+  const shouldPad = isLoggedIn
+
+  return (
+    <div className="flex min-h-screen bg-background text-foreground">
+      {isLoggedIn && <Sidebar />}
+      <main className={`flex-grow ${shouldPad ? 'p-8' : ''}`}>
+        <Routes>
+          <Route
+            path="/"
+            element={isLoggedIn ? <Dashboard /> : <Login setIsLoggedIn={setIsLoggedIn} />}
+          />
+          <Route path="/register" element={<Register />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/user-stories" element={<UserStories />} />
+          <Route path="/chat" element={<Chat />} />
+          <Route path="/settings" element={<AccountSettings />} />
+        </Routes>
+      </main>
+    </div>
+  )
+}
+
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = React.useState(false)
 
   return (
     <NextUIProvider>
       <Router>
-        <div className="flex min-h-screen bg-background text-foreground">
-          {isLoggedIn && <Sidebar />}
-          <main className="flex-grow p-8">
-            <Routes>
-              <Route
-                path="/"
-                element={isLoggedIn ? <Dashboard /> : <Login setIsLoggedIn={setIsLoggedIn} />}
-              />
-              <Route path="/register" element={<Register />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/user-stories" element={<UserStories />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/settings" element={<AccountSettings />} />
-            </Routes>
-          </main>
-        </div>
+        <AppRoutes isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
       </Router>
     </NextUIProvider>
   )
