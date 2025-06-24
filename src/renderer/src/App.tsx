@@ -15,29 +15,30 @@ const AppRoutes: React.FC<{ isLoggedIn: boolean; setIsLoggedIn: (v: boolean) => 
   isLoggedIn,
   setIsLoggedIn
 }) => {
-  const shouldPad = isLoggedIn
+  const isAuthPage = window.location.pathname === '/' && !isLoggedIn || window.location.pathname === '/register'
+
+  if (isAuthPage) {
+    return (
+      <div className="flex min-h-screen bg-background text-foreground">
+        <main className="flex-grow">
+          <Routes>
+            <Route
+              path="/"
+              element={<Login setIsLoggedIn={setIsLoggedIn} />}
+            />
+            <Route path="/register" element={<Register />} />
+          </Routes>
+        </main>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      {isLoggedIn && (
-        <aside className="w-64 bg-content1 h-screen p-4 flex flex-col fixed left-0 top-0 bottom-0 z-40">
-          <Sidebar />
-        </aside>
-      )}
-      <main
-        className={`
-          flex-grow
-          ${shouldPad ? 'p-8' : ''}
-          ${isLoggedIn ? 'ml-64 h-screen overflow-y-auto' : ''}
-          ${!isLoggedIn ? 'h-screen flex items-center justify-center overflow-hidden' : ''}
-        `}
-      >
+    <div className="flex h-screen bg-background text-foreground overflow-hidden">
+      <Sidebar />
+      <main className="flex-grow overflow-y-auto p-8">
         <Routes>
-          <Route
-            path="/"
-            element={isLoggedIn ? <Dashboard /> : <Login setIsLoggedIn={setIsLoggedIn} />}
-          />
-          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/user-stories" element={<UserStories />} />
           <Route path="/chat" element={<Chat />} />
