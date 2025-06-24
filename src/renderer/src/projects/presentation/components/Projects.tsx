@@ -12,6 +12,8 @@ import {
 } from '@nextui-org/react'
 import { Icon } from '@iconify/react'
 import EditCreateModal from '../../../shared/components/EditCreateModal'
+import { ProjectService } from '@renderer/projects/application/ProjectService'
+import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository'
 
 interface Project {
     id: number
@@ -19,24 +21,30 @@ interface Project {
     description: string
 }
 
-const initialProjects: Project[] = [
-    { id: 1, name: 'Project Alpha', description: 'First project description' },
-    { id: 2, name: 'Project Beta', description: 'Second project description' }
-]
+const service = new ProjectService(new ApiProjectRepository())
+const USER_ID = 1
 
 const Projects: React.FC = () => {
-    const [projects, setProjects] = React.useState<Project[]>(initialProjects)
-    const [filteredProjects, setFilteredProjects] = React.useState<Project[]>(initialProjects)
+    const [projects, setProjects] = React.useState<Project[]>([])
+    const [filteredProjects, setFilteredProjects] = React.useState<Project[]>([])
     const [searchQuery, setSearchQuery] = React.useState('')
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [editingProject, setEditingProject] = React.useState<Project | null>(null)
     const [form, setForm] = React.useState({ name: '', description: '' })
 
     React.useEffect(() => {
+        service.list(USER_ID).then((data) => {
+            const items = data.map((d) => ({ ...d, description: '' }))
+            setProjects(items)
+            setFilteredProjects(items)
+        })
+    }, [])
+
+    React.useEffect(() => {
         setFilteredProjects(
             projects.filter((p) =>
                 p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                p.description.toLowerCase().includes(searchQuery.toLowerCase())
+                (p.description ?? '').toLowerCase().includes(searchQuery.toLowerCase())
             )
         )
     }, [searchQuery, projects])
@@ -57,19 +65,22 @@ const Projects: React.FC = () => {
         onOpen()
     }
 
-    const handleSave = (): void => {
+    const handleSave = async (): Promise<void> => {
         if (!form.name.trim()) return
         if (editingProject) {
-            const updated = projects.map((p) =>
-                p.id === editingProject.id ? { ...editingProject, ...form } : p
-            )
-            setProjects(updated)
-        } else {
-            const newProject = {
-                id: projects.length ? Math.max(...projects.map((p) => p.id)) + 1 : 1,
-                ...form
+            try {
+                const updated = await service.update(editingProject.id, form.name, form.description)
+                setProjects((prev) => prev.map((p) => (p.id === updated.id ? { ...updated, description: form.description } : p)))
+            } catch (e) {
+                console.error(e)
             }
-            setProjects([...projects, newProject])
+        } else {
+            try {
+                const created = await service.create(USER_ID, form.name, form.description)
+                setProjects((prev) => [...prev, { ...created, description: form.description }])
+            } catch (e) {
+                console.error(e)
+            }
         }
         onClose()
     }
