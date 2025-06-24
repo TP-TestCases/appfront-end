@@ -14,6 +14,7 @@ import { Icon } from '@iconify/react'
 import EditCreateModal from '../../../shared/components/EditCreateModal'
 import { ProjectService } from '@renderer/projects/application/ProjectService'
 import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository'
+import ConfirmModal from '@renderer/shared/components/ConfirmModalProps'
 
 interface Project {
     id: number
@@ -84,6 +85,10 @@ const Projects: React.FC = () => {
         onClose()
     }
 
+    const [showConfirm, setShowConfirm] = React.useState(false)
+    const [deleteId, setDeleteId] = React.useState<number | null>(null)
+
+
     const handleDelete = async (id: number): Promise<void> => {
         try {
             await service.delete(id)
@@ -91,6 +96,14 @@ const Projects: React.FC = () => {
             setFilteredProjects((prev) => prev.filter((p) => p.id !== id))
         } catch (e) {
             console.error(e)
+        }
+    }
+
+    const handleConfirmDelete = async (): Promise<void> => {
+        if (deleteId !== null) {
+            await handleDelete(deleteId)
+            setShowConfirm(false)
+            setDeleteId(null)
         }
     }
 
@@ -153,7 +166,10 @@ const Projects: React.FC = () => {
                                         size="sm"
                                         variant="light"
                                         color="danger"
-                                        onPress={() => handleDelete(project.id)}
+                                        onPress={() => {
+                                            setDeleteId(project.id)
+                                            setShowConfirm(true)
+                                        }}
                                         aria-label="Eliminar"
                                     >
                                         <Icon icon="lucide:trash" />
@@ -170,6 +186,13 @@ const Projects: React.FC = () => {
                 onSave={handleSave}
                 title={editingProject ? 'Edit Project' : 'Create Project'}
                 fields={fields}
+            />
+            <ConfirmModal
+                isOpen={showConfirm}
+                title="Eliminar proyecto"
+                description="¿Estás seguro de que deseas eliminar este proyecto? Esta acción no se puede deshacer."
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setShowConfirm(false)}
             />
         </div>
     )
