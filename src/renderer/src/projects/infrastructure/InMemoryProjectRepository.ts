@@ -8,16 +8,32 @@ export class InMemoryProjectRepository implements ProjectRepository {
         this.projects = initial
     }
 
-    async getAll(): Promise<Project[]> {
-        return this.projects
+    async list(userId: number): Promise<Project[]> {
+        return this.projects.filter((p) => p.userId === userId)
     }
 
-    async save(project: Project): Promise<void> {
-        const idx = this.projects.findIndex((p) => p.id === project.id)
-        if (idx !== -1) {
-            this.projects[idx] = project
-        } else {
-            this.projects.push(project)
+    async create(userId: number, name: string, description: string): Promise<Project> {
+        const now = new Date().toISOString()
+        const newProject: Project = {
+            id: this.projects.length ? Math.max(...this.projects.map((p) => p.id)) + 1 : 1,
+            userId,
+            name,
+            description,
+            createdAt: now,
         }
+        this.projects.push(newProject)
+        return newProject
+    }
+
+    async update(id: number, name: string, description: string): Promise<Project> {
+        const project = this.projects.find((p) => p.id === id)
+        if (!project) throw new Error('Project not found')
+        project.name = name
+        project.description = description
+        return project
+    }
+
+    async delete(id: number): Promise<void> {
+        this.projects = this.projects.filter((p) => p.id !== id)
     }
 }
