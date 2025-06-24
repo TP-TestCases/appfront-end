@@ -5,15 +5,23 @@ import { InMemoryProjectRepository } from "../infrastructure/InMemoryProjectRepo
 export class ProjectService {
     private repository: ProjectRepository
 
-    constructor(repository?: ProjectRepository) {
-        this.repository = repository || new InMemoryProjectRepository()
+    constructor(repository: ProjectRepository = new InMemoryProjectRepository()) {
+        this.repository = repository
     }
 
-    async getProjects(): Promise<Project[]> {
-        return this.repository.getAll()
+    list(userId: number): Promise<Project[]> {
+        return this.repository.list(userId)
     }
 
-    async saveProject(project: Project): Promise<void> {
-        return this.repository.save(project)
+    create(userId: number, name: string, description: string): Promise<Project> {
+        return this.repository.create(userId, name, description)
+    }
+
+    update(id: number, name: string, description: string): Promise<Project> {
+        return this.repository.update(id, name, description)
+    }
+
+    delete(id: number): Promise<void> {
+        return this.repository.delete(id)
     }
 }
