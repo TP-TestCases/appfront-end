@@ -84,6 +84,16 @@ const Projects: React.FC = () => {
         onClose()
     }
 
+    const handleDelete = async (id: number): Promise<void> => {
+        try {
+            await service.delete(id)
+            setProjects((prev) => prev.filter((p) => p.id !== id))
+            setFilteredProjects((prev) => prev.filter((p) => p.id !== id))
+        } catch (e) {
+            console.error(e)
+        }
+    }
+
     const fields = [
         {
             name: 'name',
@@ -129,9 +139,26 @@ const Projects: React.FC = () => {
                             <TableCell>{project.name}</TableCell>
                             <TableCell>{project.description}</TableCell>
                             <TableCell>
-                                <Button size="sm" variant="light" onPress={() => handleEdit(project)}>
-                                    <Icon icon="lucide:edit" />
-                                </Button>
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="light"
+                                        color="primary"
+                                        onPress={() => handleEdit(project)}
+                                        aria-label="Editar"
+                                    >
+                                        <Icon icon="lucide:edit" />
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="light"
+                                        color="danger"
+                                        onPress={() => handleDelete(project.id)}
+                                        aria-label="Eliminar"
+                                    >
+                                        <Icon icon="lucide:trash" />
+                                    </Button>
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))}
