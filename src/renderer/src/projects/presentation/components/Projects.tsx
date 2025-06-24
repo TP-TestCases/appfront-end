@@ -20,6 +20,7 @@ interface Project {
     id: number
     name: string
     description: string
+    status_project: boolean
 }
 
 const service = new ProjectService(new ApiProjectRepository())
@@ -31,7 +32,7 @@ const Projects: React.FC = () => {
     const [searchQuery, setSearchQuery] = React.useState('')
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [editingProject, setEditingProject] = React.useState<Project | null>(null)
-    const [form, setForm] = React.useState({ name: '', description: '' })
+    const [form, setForm] = React.useState({ name: '', description: '', status_project: true })
 
     React.useEffect(() => {
         service.list(USER_ID).then((data) => {
@@ -55,13 +56,13 @@ const Projects: React.FC = () => {
 
     const handleEdit = (project: Project): void => {
         setEditingProject(project)
-        setForm({ name: project.name, description: project.description })
+        setForm({ name: project.name, description: project.description, status_project: project.status_project })
         onOpen()
     }
 
     const handleCreate = (): void => {
         setEditingProject(null)
-        setForm({ name: '', description: '' })
+        setForm({ name: '', description: '', status_project: true })
         onOpen()
     }
 
@@ -69,14 +70,14 @@ const Projects: React.FC = () => {
         if (!form.name.trim()) return
         if (editingProject) {
             try {
-                const updated = await service.update(editingProject.id, form.name, form.description)
+                const updated = await service.update(editingProject.id, form.name, form.description, true)
                 setProjects((prev) => prev.map((p) => (p.id === updated.id ? { ...updated, description: form.description } : p)))
             } catch (e) {
                 console.error(e)
             }
         } else {
             try {
-                const created = await service.create(USER_ID, form.name, form.description)
+                const created = await service.create(USER_ID, form.name, form.description, true)
                 setProjects((prev) => [...prev, { ...created, description: form.description }])
             } catch (e) {
                 console.error(e)
@@ -121,6 +122,18 @@ const Projects: React.FC = () => {
             value: form.description,
             onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
             required: true
+        },
+        {
+            name: 'status_project',
+            label: 'Activo',
+            type: "select" as const,
+            value: form.status_project ? '1' : '0',
+            onChange: (value: string) => setForm((f) => ({ ...f, status_project: value === '1' })),
+            options: [
+                { label: 'Activo', value: '1' },
+                { label: 'Inactivo', value: '0' }
+            ],
+            required: true
         }
     ]
 
@@ -144,6 +157,7 @@ const Projects: React.FC = () => {
                 <TableHeader>
                     <TableColumn>NAME</TableColumn>
                     <TableColumn>DESCRIPTION</TableColumn>
+                    <TableColumn>STATUS</TableColumn>
                     <TableColumn>ACTIONS</TableColumn>
                 </TableHeader>
                 <TableBody>
@@ -151,6 +165,18 @@ const Projects: React.FC = () => {
                         <TableRow key={project.id}>
                             <TableCell>{project.name}</TableCell>
                             <TableCell>{project.description}</TableCell>
+                            <TableCell>
+                                <span
+                                    className={` px-3 py-1 rounded-2xl font-semibold text-sm
+                                        ${project.status_project
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-600'}
+                                            w-24`}
+                                    style={{ display: 'inline-block' }}
+                                >
+                                    {project.status_project ? 'Activo' : 'Inactivo'}
+                                </span>
+                            </TableCell>
                             <TableCell>
                                 <div className="flex gap-2">
                                     <Button
@@ -189,8 +215,8 @@ const Projects: React.FC = () => {
             />
             <ConfirmModal
                 isOpen={showConfirm}
-                title="Eliminar proyecto"
-                description="¿Estás seguro de que deseas eliminar este proyecto? Esta acción no se puede deshacer."
+                title="Desactivar proyecto"
+                description="¿Estás seguro de que deseas desactivar este proyecto? Podrás volver a activarlo la edición."
                 onConfirm={handleConfirmDelete}
                 onCancel={() => setShowConfirm(false)}
             />

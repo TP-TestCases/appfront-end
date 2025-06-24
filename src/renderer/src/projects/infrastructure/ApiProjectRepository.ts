@@ -6,11 +6,12 @@ const API_URL = import.meta.env.VITE_API_URL
 export class ApiProjectRepository implements ProjectRepository {
     constructor(private baseUrl: string = API_URL) { }
 
-    private mapProject(data: { id: number; name: string; description: string; user_id: number; created_at: string; updated_at: string }): Project {
+    private mapProject(data: { id: number; name: string; description: string; status_project: boolean; user_id: number; created_at: string; updated_at: string }): Project {
         return {
             id: data.id,
             name: data.name,
             description: data.description,
+            status_project: !!data.status_project,
             userId: data.user_id,
             createdAt: data.created_at,
             updatedAt: data.updated_at
@@ -23,14 +24,14 @@ export class ApiProjectRepository implements ProjectRepository {
             throw new Error('Failed to load projects')
         }
         const data = await response.json()
-        return data.map((p: { id: number; name: string; description: string; user_id: number; created_at: string; updated_at: string }) => this.mapProject(p))
+        return data.map((p: { id: number; name: string; description: string; status_project: boolean; user_id: number; created_at: string; updated_at: string }) => this.mapProject(p))
     }
 
-    async create(userId: number, name: string, description: string): Promise<Project> {
+    async create(userId: number, name: string, description: string, status_project: boolean): Promise<Project> {
         const response = await fetch(`${this.baseUrl}/projects`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, name, description })
+            body: JSON.stringify({ user_id: userId, name, description, status_project })
         })
         if (!response.ok) {
             const err = await response.json().catch(() => null)
@@ -40,11 +41,11 @@ export class ApiProjectRepository implements ProjectRepository {
         return this.mapProject(data)
     }
 
-    async update(id: number, name: string, description: string): Promise<Project> {
+    async update(id: number, name: string, description: string, status_project: boolean): Promise<Project> {
         const response = await fetch(`${this.baseUrl}/projects/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, description })
+            body: JSON.stringify({ name, description, status_project })
         })
         if (!response.ok) {
             const err = await response.json().catch(() => null)

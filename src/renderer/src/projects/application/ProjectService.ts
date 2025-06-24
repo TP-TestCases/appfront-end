@@ -13,12 +13,12 @@ export class ProjectService {
         return this.repository.list(userId)
     }
 
-    create(userId: number, name: string, description: string): Promise<Project> {
-        return this.repository.create(userId, name, description)
+    create(userId: number, name: string, description: string, status_project: boolean): Promise<Project> {
+        return this.repository.create(userId, name, description, status_project)
     }
 
-    update(id: number, name: string, description: string): Promise<Project> {
-        return this.repository.update(id, name, description)
+    update(id: number, name: string, description: string, status_project: boolean): Promise<Project> {
+        return this.repository.update(id, name, description, status_project)
     }
 
     delete(id: number): Promise<void> {
