@@ -34,9 +34,8 @@ const Projects: React.FC = () => {
 
     React.useEffect(() => {
         service.list(USER_ID).then((data) => {
-            const items = data.map((d) => ({ ...d, description: '' }))
-            setProjects(items)
-            setFilteredProjects(items)
+            setProjects(data)
+            setFilteredProjects(data)
         })
     }, [])
 
