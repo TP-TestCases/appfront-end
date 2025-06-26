@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import FormField from '../../../shared/components/FormField'
 import { Buttons } from '../../../shared/components/Button'
 import { AuthService } from '@renderer/auth/application/AuthService'
+import { useNotification } from '@renderer/shared/utils/useNotification'
 
 const authService = new AuthService()
 const Register: React.FC = () => {
@@ -12,8 +13,8 @@ const Register: React.FC = () => {
     password: '',
     confirmPassword: ''
   })
-  const [error, setError] = React.useState('')
   const navigate = useNavigate()
+  const notify = useNotification()
 
   const inputs = [
     {
@@ -59,7 +60,7 @@ const Register: React.FC = () => {
   const handleRegister = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     if (form.password !== form.confirmPassword) {
-      setError('Passwords do not match')
+      notify('Passwords do not match', 'error')
       return
     }
     try {
@@ -69,9 +70,14 @@ const Register: React.FC = () => {
         password: form.password,
         confirmPassword: form.confirmPassword
       })
+      notify('¡Registro exitoso!', 'success')
       navigate('/')
-    } catch (e) {
-      setError((e as Error).message)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        notify(error.message || 'Error al registrar', 'error')
+      } else {
+        notify('Error al registrar', 'error')
+      }
     }
   }
 
@@ -87,8 +93,6 @@ const Register: React.FC = () => {
           {inputs.map((props) => (
             <FormField key={props.id} {...props} />
           ))}
-
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <Buttons type="submit">
             Register
