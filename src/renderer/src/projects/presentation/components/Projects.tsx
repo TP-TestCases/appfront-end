@@ -24,9 +24,19 @@ interface Project {
 }
 
 const service = new ProjectService(new ApiProjectRepository())
-const USER_ID = 1
+
+const getUserId = (): number | null => {
+    const user = localStorage.getItem('user')
+    if (!user) return null
+    try {
+        return JSON.parse(user).id
+    } catch {
+        return null
+    }
+}
 
 const Projects: React.FC = () => {
+    const userId = getUserId()
     const [projects, setProjects] = React.useState<Project[]>([])
     const [filteredProjects, setFilteredProjects] = React.useState<Project[]>([])
     const [searchQuery, setSearchQuery] = React.useState('')
@@ -35,11 +45,13 @@ const Projects: React.FC = () => {
     const [form, setForm] = React.useState({ name: '', description: '', status_project: true })
 
     React.useEffect(() => {
-        service.list(USER_ID).then((data) => {
-            setProjects(data)
-            setFilteredProjects(data)
-        })
-    }, [])
+        if (userId) {
+            service.list(userId).then((data) => {
+                setProjects(data)
+                setFilteredProjects(data)
+            })
+        }
+    }, [userId])
 
     React.useEffect(() => {
         setFilteredProjects(
@@ -67,17 +79,17 @@ const Projects: React.FC = () => {
     }
 
     const handleSave = async (): Promise<void> => {
-        if (!form.name.trim()) return
+        if (!form.name.trim() || !userId) return
         if (editingProject) {
             try {
-                const updated = await service.update(editingProject.id, form.name, form.description, true)
+                const updated = await service.update(editingProject.id, form.name, form.description, form.status_project)
                 setProjects((prev) => prev.map((p) => (p.id === updated.id ? { ...updated, description: form.description } : p)))
             } catch (e) {
                 console.error(e)
             }
         } else {
             try {
-                const created = await service.create(USER_ID, form.name, form.description, true)
+                const created = await service.create(userId, form.name, form.description, form.status_project)
                 setProjects((prev) => [...prev, { ...created, description: form.description }])
             } catch (e) {
                 console.error(e)
