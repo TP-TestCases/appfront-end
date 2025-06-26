@@ -15,6 +15,7 @@ import EditCreateModal from '../../../shared/components/EditCreateModal'
 import { ProjectService } from '@renderer/projects/application/ProjectService'
 import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository'
 import ConfirmModal from '@renderer/shared/components/ConfirmModalProps'
+import { useNotification } from '@renderer/shared/utils/useNotification'
 
 interface Project {
     id: number
@@ -43,6 +44,7 @@ const Projects: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [editingProject, setEditingProject] = React.useState<Project | null>(null)
     const [form, setForm] = React.useState({ name: '', description: '', status_project: true })
+    const notify = useNotification()
 
     React.useEffect(() => {
         if (userId) {
@@ -84,15 +86,19 @@ const Projects: React.FC = () => {
             try {
                 const updated = await service.update(editingProject.id, form.name, form.description, form.status_project)
                 setProjects((prev) => prev.map((p) => (p.id === updated.id ? { ...updated, description: form.description } : p)))
+                notify('Proyecto actualizado correctamente', 'success')
             } catch (e) {
                 console.error(e)
+                notify('Error al actualizar el proyecto', 'error')
             }
         } else {
             try {
                 const created = await service.create(userId, form.name, form.description, form.status_project)
                 setProjects((prev) => [...prev, { ...created, description: form.description }])
+                notify('Proyecto creado correctamente', 'success')
             } catch (e) {
                 console.error(e)
+                notify('Error al crear el proyecto', 'error')
             }
         }
         onClose()
@@ -135,18 +141,21 @@ const Projects: React.FC = () => {
             onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
             required: true
         },
-        {
-            name: 'status_project',
-            label: 'Activo',
-            type: "select" as const,
-            value: form.status_project ? '1' : '0',
-            onChange: (value: string) => setForm((f) => ({ ...f, status_project: value === '1' })),
-            options: [
-                { label: 'Activo', value: '1' },
-                { label: 'Inactivo', value: '0' }
-            ],
-            required: true
-        }
+        ...(editingProject
+            ? [{
+                name: 'status_project',
+                label: 'Activo',
+                type: "select" as const,
+                value: form.status_project ? '1' : '0',
+                onChange: (value: string) => setForm((f) => ({ ...f, status_project: value === '1' })),
+                options: [
+                    { label: 'Activo', value: '1' },
+                    { label: 'Inactivo', value: '0' }
+                ],
+                required: true
+            }]
+            : []
+        )
     ]
 
     return (
