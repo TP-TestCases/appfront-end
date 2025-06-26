@@ -12,6 +12,12 @@ export class InMemoryEpicRepository implements EpicRepository {
         return this.epics.filter((e) => e.project_id === projectId)
     }
 
+    async listShort(projectId: number): Promise<{ id: number; second_id: string; name: string }[]> {
+        return this.epics
+            .filter((e) => e.project_id === projectId)
+            .map((e) => ({ id: e.id, second_id: e.second_id, name: e.name }))
+    }
+
     async get(id: number): Promise<Epic> {
         const epic = this.epics.find((e) => e.id === id)
         if (!epic) throw new Error('Epic not found')

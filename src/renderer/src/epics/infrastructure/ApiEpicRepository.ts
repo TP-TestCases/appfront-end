@@ -37,6 +37,14 @@ export class ApiEpicRepository implements EpicRepository {
         return data.map((e: Parameters<ApiEpicRepository['mapEpic']>[0]) => this.mapEpic(e))
     }
 
+    async listShort(projectId: number): Promise<{ id: number; second_id: string; name: string }[]> {
+        const response = await fetch(`${this.baseUrl}/epics/project/${projectId}/short`)
+        if (!response.ok) {
+            throw new Error('Failed to load short epics')
+        }
+        return await response.json()
+    }
+
     async get(id: number): Promise<Epic> {
         const response = await fetch(`${this.baseUrl}/epics/${id}`)
         if (!response.ok) {
