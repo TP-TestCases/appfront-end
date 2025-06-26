@@ -15,6 +15,7 @@ import EditCreateModal from '../../../shared/components/EditCreateModal'
 import { Epic } from '@renderer/epics/domain/Epic'
 import { EpicService } from '@renderer/epics/application/EpicService'
 import { ApiEpicRepository } from '@renderer/epics/infrastructure/ApiEpicRepository'
+import { useNotification } from '@renderer/shared/utils/useNotification'
 
 const PROJECT_ID = 1
 const epicService = new EpicService(new ApiEpicRepository())
@@ -26,6 +27,7 @@ const Epics: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [editingEpic, setEditingEpic] = React.useState<Epic | null>(null)
     const [form, setForm] = React.useState({ name: '', description: '', status_epic: true })
+    const notify = useNotification()
 
     React.useEffect(() => {
         epicService.list(PROJECT_ID).then((data) => {
@@ -71,19 +73,23 @@ const Epics: React.FC = () => {
                     form.status_epic
                 )
                 setEpics((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+                notify('Épica actualizada correctamente', 'success')
             } catch (e) {
                 console.error(e)
+                notify('Error al actualizar la épica', 'error')
             }
         } else {
             try {
                 const created = await epicService.create(
                     PROJECT_ID,
                     form.name,
-                    form.description
+                    form.description,
                 )
                 setEpics((prev) => [...prev, created])
+                notify('Épica creada correctamente', 'success')
             } catch (e) {
                 console.error(e)
+                notify('Error al crear la épica', 'error')
             }
         }
         onClose()
