@@ -13,30 +13,33 @@ import {
 import { Icon } from '@iconify/react'
 import EditCreateModal from '../../../shared/components/EditCreateModal'
 import { Epic } from '@renderer/epics/domain/Epic'
-import { InMemoryEpicRepository } from '@renderer/epics/infrastructure/InMemoryEpicRepository'
 import { EpicService } from '@renderer/epics/application/EpicService'
+import { ApiEpicRepository } from '@renderer/epics/infrastructure/ApiEpicRepository'
 
-const initialEpics: Epic[] = [
-    { second_id: 1, name: 'Epic Alpha', description: 'First epic', status: 'Active' },
-    { second_id: 2, name: 'Epic Beta', description: 'Second epic', status: 'Inactive' }
-]
-
-const epicService = new EpicService(new InMemoryEpicRepository(initialEpics))
+const PROJECT_ID = 1
+const epicService = new EpicService(new ApiEpicRepository())
 
 const Epics: React.FC = () => {
-    const [epics, setEpics] = React.useState<Epic[]>(initialEpics)
-    const [filteredEpics, setFilteredEpics] = React.useState<Epic[]>(initialEpics)
+    const [epics, setEpics] = React.useState<Epic[]>([])
+    const [filteredEpics, setFilteredEpics] = React.useState<Epic[]>([])
     const [searchQuery, setSearchQuery] = React.useState('')
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [editingEpic, setEditingEpic] = React.useState<Epic | null>(null)
-    const [form, setForm] = React.useState({ name: '', description: '', status: '' })
+    const [form, setForm] = React.useState({ name: '', description: '', status_epic: true })
+
+    React.useEffect(() => {
+        epicService.list(PROJECT_ID).then((data) => {
+            setEpics(data)
+            setFilteredEpics(data)
+        }).catch(console.error)
+    }, [])
+
 
     React.useEffect(() => {
         setFilteredEpics(
             epics.filter((e) =>
                 e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                e.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                e.status.toLowerCase().includes(searchQuery.toLowerCase())
+                e.description.toLowerCase().includes(searchQuery.toLowerCase())
             )
         )
     }, [searchQuery, epics])
@@ -47,42 +50,44 @@ const Epics: React.FC = () => {
 
     const handleEdit = (epic: Epic): void => {
         setEditingEpic(epic)
-        setForm({ name: epic.name, description: epic.description, status: epic.status })
+        setForm({ name: epic.name, description: epic.description, status_epic: epic.status_epic })
         onOpen()
     }
 
     const handleCreate = (): void => {
         setEditingEpic(null)
-        setForm({ name: '', description: '', status: '' })
+        setForm({ name: '', description: '', status_epic: true })
         onOpen()
     }
 
-    const handleSave = (): void => {
+    const handleSave = async (): Promise<void> => {
         if (!form.name.trim()) return
         if (editingEpic) {
-            const updated = epics.map((e) =>
-                e.second_id === editingEpic.second_id ? { ...editingEpic, ...form } : e
-            )
-            setEpics(updated)
-            setFilteredEpics(updated)
-            epicService.saveEpic({ ...editingEpic, ...form })
-        } else {
-            const newEpic = {
-                second_id: epics.length ? Math.max(...epics.map((e) => e.second_id)) + 1 : 1,
-                ...form
+            try {
+                const updated = await epicService.update(
+                    editingEpic.id,
+                    form.name,
+                    form.description,
+                    form.status_epic
+                )
+                setEpics((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+            } catch (e) {
+                console.error(e)
             }
-            const newEpics = [...epics, newEpic]
-            setEpics(newEpics)
-            setFilteredEpics(newEpics)
-            epicService.saveEpic(newEpic)
+        } else {
+            try {
+                const created = await epicService.create(
+                    PROJECT_ID,
+                    form.name,
+                    form.description
+                )
+                setEpics((prev) => [...prev, created])
+            } catch (e) {
+                console.error(e)
+            }
         }
         onClose()
     }
-
-    const statusOptions = [
-        { label: 'Active', value: 'Active' },
-        { label: 'Inactive', value: 'Inactive' }
-    ]
 
     const fields = [
         {
@@ -99,16 +104,21 @@ const Epics: React.FC = () => {
             onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
             required: true
         },
-        {
-            name: 'status',
-            label: 'Status',
-            value: form.status,
-            onChange: (value: string) => setForm((f) => ({ ...f, status: value })),
-            required: true,
-            type: 'select' as const,
-            options: statusOptions,
-            placeholder: 'Select status'
-        }
+        ...(editingEpic
+            ? [{
+                name: 'status_epic',
+                label: 'Activo',
+                type: "select" as const,
+                value: form.status_epic ? '1' : '0',
+                onChange: (value: string) => setForm((f) => ({ ...f, status_epic: value === '1' })),
+                options: [
+                    { label: 'Activo', value: '1' },
+                    { label: 'Inactivo', value: '0' }
+                ],
+                required: true
+            }]
+            : []
+        )
     ]
 
     return (
@@ -136,10 +146,21 @@ const Epics: React.FC = () => {
                 </TableHeader>
                 <TableBody>
                     {filteredEpics.map((epic) => (
-                        <TableRow key={epic.second_id}>
+                        <TableRow key={epic.id}>
                             <TableCell>{epic.name}</TableCell>
                             <TableCell>{epic.description}</TableCell>
-                            <TableCell>{epic.status}</TableCell>
+                            <TableCell>
+                                <span
+                                    className={` px-3 py-1 rounded-2xl font-semibold text-sm
+                                        ${epic.status_epic
+                                            ? 'bg-green-100 text-green-700'
+                                            : 'bg-red-100 text-red-600'}
+                                            w-24`}
+                                    style={{ display: 'inline-block' }}
+                                >
+                                    {epic.status_epic ? 'Activo' : 'Inactivo'}
+                                </span>
+                            </TableCell>
                             <TableCell>
                                 <Button size="sm" variant="light" onPress={() => handleEdit(epic)}>
                                     <Icon icon="lucide:edit" />

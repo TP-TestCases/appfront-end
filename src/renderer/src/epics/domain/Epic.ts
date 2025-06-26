@@ -1,6 +1,10 @@
 export interface Epic {
-    second_id: number
+    id: number
+    project_id: number
+    second_id: string
     name: string
     description: string
-    status: string
+    status_epic: boolean
+    createdAt: string
+    updatedAt?: string | null
 }

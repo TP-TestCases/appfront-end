@@ -3,17 +3,21 @@ import { EpicRepository } from "../domain/EpicRepository"
 import { InMemoryEpicRepository } from "../infrastructure/InMemoryEpicRepository"
 
 export class EpicService {
-    private repository: EpicRepository
+    constructor(private repository: EpicRepository = new InMemoryEpicRepository()) { }
 
-    constructor(repository?: EpicRepository) {
-        this.repository = repository || new InMemoryEpicRepository()
+    list(projectId: number): Promise<Epic[]> {
+        return this.repository.list(projectId)
     }
 
-    async getEpics(): Promise<Epic[]> {
-        return this.repository.getAll()
+    create(projectId: number, name: string, description: string): Promise<Epic> {
+        return this.repository.create(projectId, name, description)
     }
 
-    async saveEpic(epic: Epic): Promise<void> {
-        return this.repository.save(epic)
+    update(id: number, name: string, description: string, status_epic: boolean | null): Promise<Epic> {
+        return this.repository.update(id, name, description, status_epic)
+    }
+
+    delete(id: number): Promise<void> {
+        return this.repository.delete(id)
     }
 }
