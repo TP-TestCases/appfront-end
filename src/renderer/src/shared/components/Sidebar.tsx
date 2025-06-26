@@ -51,7 +51,10 @@ const Sidebar: React.FC = () => {
             key="logout"
             startContent={<Icon icon="lucide:log-out" />}
             className="text-danger cursor-pointer"
-            onClick={() => { window.location.href = '/' }}
+            onClick={() => {
+              localStorage.removeItem('user')
+              window.location.href = '/'
+            }}
           >
             Logout
           </ListboxItem>

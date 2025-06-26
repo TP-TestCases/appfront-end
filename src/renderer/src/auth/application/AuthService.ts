@@ -17,7 +17,7 @@ const API_URL = import.meta.env.VITE_API_URL
 export class AuthService {
     constructor(private baseUrl = API_URL) { }
 
-    async login(payload: LoginPayload): Promise<User | null> {
+    async login(payload: LoginPayload): Promise<User> {
         const response = await fetch(`${this.baseUrl}/auth/login`, {
             method: 'POST',
             headers: {
@@ -36,9 +36,8 @@ export class AuthService {
 
         const data = await response.json()
         return {
-            id: 0,
+            id: data.id,
             username: data.username,
-            password: '',
             firstName: data.first_name,
             lastName: data.last_name
         }

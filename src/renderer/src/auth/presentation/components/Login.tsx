@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import FormField from '../../../shared/components/FormField'
 import { Buttons } from '../../../shared/components/Button'
 import { AuthService } from '@renderer/auth/application/AuthService'
+import { useNotification } from '@renderer/shared/utils/useNotification'
 
 const authService = new AuthService()
 
@@ -10,8 +11,8 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
   setIsLoggedIn,
 }) => {
   const [form, setForm] = React.useState({ username: '', password: '' })
-  const [error, setError] = React.useState('')
   const navigate = useNavigate()
+  const notify = useNotification()
 
   const inputs = [
     {
@@ -38,16 +39,18 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
-    setError('')
     try {
       await authService.login({ username: form.username, password: form.password })
+      const user = await authService.login({ username: form.username, password: form.password })
       setIsLoggedIn(true)
+      localStorage.setItem('user', JSON.stringify(user))
+      notify('¡Login exitoso!', 'success')
       navigate('/')
     } catch (e: unknown) {
       if (e instanceof Error) {
-        setError(e.message)
+        notify(e.message, 'error')
       } else {
-        setError('An unknown error occurred')
+        notify('An unknown error occurred', 'error')
       }
     }
   }
@@ -64,10 +67,6 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
           {inputs.map((props) => (
             <FormField key={props.id} {...props} />
           ))}
-
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
 
           <Buttons type="submit">
             Login
