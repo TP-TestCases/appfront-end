@@ -10,6 +10,7 @@ import UserStories from './userstories/presentation/components/UserStories';
 import Chat from './chat/presentation/components/Chat';
 import AccountSettings from './settings/presentation/components/AccountSettings';
 import Epics from './epics/presentation/components/Epics';
+import { NotificationProvider } from './shared/components/Notification' // <-- Importa el provider
 
 const AppRoutes: React.FC<{ isLoggedIn: boolean; setIsLoggedIn: (v: boolean) => void }> = ({
   isLoggedIn,
@@ -55,9 +56,11 @@ const App: React.FC = () => {
 
   return (
     <NextUIProvider>
-      <Router>
-        <AppRoutes isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-      </Router>
+      <NotificationProvider>
+        <Router>
+          <AppRoutes isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+        </Router>
+      </NotificationProvider>
     </NextUIProvider>
   )
 }
