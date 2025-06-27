@@ -32,7 +32,6 @@ const getUserId = (): number | null => {
 const userStoryService = new UserStoryService(new ApiUserStoryRepository())
 const projectRepository = new ApiProjectRepository()
 const epicRepository = new ApiEpicRepository()
-const EPIC_ID = 1
 
 const UserStories: React.FC = () => {
   const userId = getUserId()
@@ -65,14 +64,15 @@ const UserStories: React.FC = () => {
   })
 
   React.useEffect(() => {
+    if (!userId) return
     userStoryService
-      .list(EPIC_ID)
+      .listByUser(userId)
       .then((data) => {
         setStories(data)
         setFilteredStories(data)
       })
       .catch(console.error)
-  }, [])
+  }, [userId])
 
   const handleSearch = (query: string): void => {
     setSearchQuery(query)

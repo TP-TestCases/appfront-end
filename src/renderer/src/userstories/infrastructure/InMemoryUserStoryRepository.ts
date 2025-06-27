@@ -8,6 +8,10 @@ export class InMemoryUserStoryRepository implements UserStoryRepository {
         this.stories = initialStories
     }
 
+    async listByUser(userId: number): Promise<UserStory[]> {
+        return this.stories.filter((s) => s.epic_id === userId)
+    }
+
     async list(epicId: number): Promise<UserStory[]> {
         return this.stories.filter((s) => s.epic_id === epicId)
     }
@@ -29,6 +33,7 @@ export class InMemoryUserStoryRepository implements UserStoryRepository {
         const newStory: UserStory = {
             id: nextId,
             epic_id,
+            epic_second_id: '',
             second_id: String(nextId),
             name,
             rol,

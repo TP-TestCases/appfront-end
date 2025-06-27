@@ -9,6 +9,7 @@ export class ApiEpicRepository implements EpicRepository {
     private mapEpic(data: {
         id: number;
         project_id: number;
+        project_name: string;
         second_id: string;
         name: string;
         description: string;
@@ -19,6 +20,7 @@ export class ApiEpicRepository implements EpicRepository {
         return {
             id: data.id,
             project_id: data.project_id,
+            project_name: data.project_name,
             second_id: data.second_id,
             name: data.name,
             description: data.description,
@@ -26,6 +28,15 @@ export class ApiEpicRepository implements EpicRepository {
             createdAt: data.created_at,
             updatedAt: data.updated_at
         }
+    }
+
+    async listByUser(userId: number): Promise<Epic[]> {
+        const response = await fetch(`${this.baseUrl}/epics/user/${userId}`)
+        if (!response.ok) {
+            throw new Error('Failed to load epics by user')
+        }
+        const data = await response.json()
+        return data.map((e: Parameters<ApiEpicRepository['mapEpic']>[0]) => this.mapEpic(e))
     }
 
     async list(projectId: number): Promise<Epic[]> {

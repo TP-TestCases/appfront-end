@@ -4,6 +4,10 @@ import { UserStoryRepository } from "../domain/UserStoryRepository"
 export class UserStoryService {
     constructor(private repository: UserStoryRepository) { }
 
+    listByUser(userId: number): Promise<UserStory[]> {
+        return this.repository.listByUser(userId)
+    }
+
     list(epicId: number): Promise<UserStory[]> {
         return this.repository.list(epicId)
     }

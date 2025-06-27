@@ -1,6 +1,7 @@
 import { UserStory } from "./userStory"
 
 export interface UserStoryRepository {
+    listByUser(userId: number): Promise<UserStory[]>
     list(epicId: number): Promise<UserStory[]>
     listShort(epicId: number): Promise<{ id: number; second_id: string; name: string }[]>
     get(id: number): Promise<UserStory>

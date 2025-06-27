@@ -30,7 +30,6 @@ const getUserId = (): number | null => {
 
 const epicService = new EpicService(new ApiEpicRepository())
 const projectRepository = new ApiProjectRepository()
-const PROJECT_ID = 1
 
 const Epics: React.FC = () => {
     const [epics, setEpics] = React.useState<Epic[]>([])
@@ -45,11 +44,12 @@ const Epics: React.FC = () => {
     const notify = useNotification()
 
     React.useEffect(() => {
-        epicService.list(PROJECT_ID).then((data) => {
+        if (!userId) return
+        epicService.listByUser(userId).then((data) => {
             setEpics(data)
             setFilteredEpics(data)
         }).catch(console.error)
-    }, [])
+    }, [userId])
 
 
     React.useEffect(() => {

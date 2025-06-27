@@ -8,6 +8,10 @@ export class InMemoryEpicRepository implements EpicRepository {
         this.epics = initial
     }
 
+    async listByUser(userId: number): Promise<Epic[]> {
+        return this.epics.filter((e) => e.user_id === userId)
+    }
+
     async list(projectId: number): Promise<Epic[]> {
         return this.epics.filter((e) => e.project_id === projectId)
     }
@@ -28,7 +32,9 @@ export class InMemoryEpicRepository implements EpicRepository {
         const nextId = this.epics.length ? Math.max(...this.epics.map((e) => e.id)) + 1 : 1
         const newEpic: Epic = {
             id: nextId,
+            user_id: null,
             project_id: projectId,
+            project_name: '',
             second_id: nextId.toString(),
             name,
             description,

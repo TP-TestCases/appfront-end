@@ -1,6 +1,7 @@
 import { Epic } from './Epic'
 
 export interface EpicRepository {
+    listByUser(userId: number): Promise<Epic[]>
     list(projectId: number): Promise<Epic[]>
     listShort(projectId: number): Promise<{ id: number; second_id: string; name: string }[]>
     get(id: number): Promise<Epic>

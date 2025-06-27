@@ -1,6 +1,7 @@
 export interface UserStory {
   id: number
   epic_id: number
+  epic_second_id: string
   second_id: string
   name: string
   rol: string

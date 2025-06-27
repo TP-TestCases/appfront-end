@@ -5,6 +5,10 @@ import { InMemoryEpicRepository } from "../infrastructure/InMemoryEpicRepository
 export class EpicService {
     constructor(private repository: EpicRepository = new InMemoryEpicRepository()) { }
 
+    listByUser(userId: number): Promise<Epic[]> {
+        return this.repository.listByUser(userId)
+    }
+
     list(projectId: number): Promise<Epic[]> {
         return this.repository.list(projectId)
     }

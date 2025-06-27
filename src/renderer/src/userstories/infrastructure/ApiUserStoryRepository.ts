@@ -9,6 +9,7 @@ export class ApiUserStoryRepository implements UserStoryRepository {
     private mapStory(data: {
         id: number
         epic_id: number
+        epic_second_id: string
         second_id: string
         name: string
         rol: string
@@ -26,6 +27,7 @@ export class ApiUserStoryRepository implements UserStoryRepository {
         return {
             id: data.id,
             epic_id: data.epic_id,
+            epic_second_id: data.epic_second_id,
             second_id: data.second_id,
             name: data.name,
             rol: data.rol,
@@ -40,6 +42,15 @@ export class ApiUserStoryRepository implements UserStoryRepository {
             createdAt: data.created_at,
             updatedAt: data.updated_at
         }
+    }
+
+    async listByUser(userId: number): Promise<UserStory[]> {
+        const response = await fetch(`${this.baseUrl}/user_stories/user/${userId}`)
+        if (!response.ok) {
+            throw new Error('Failed to load user stories by user')
+        }
+        const data = await response.json()
+        return data.map((s: Parameters<ApiUserStoryRepository['mapStory']>[0]) => this.mapStory(s))
     }
 
     async list(epicId: number): Promise<UserStory[]> {
