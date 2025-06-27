@@ -201,6 +201,7 @@ const Epics: React.FC = () => {
             />
             <Table aria-label="Epics table" removeWrapper>
                 <TableHeader>
+                    <TableColumn>PROJECT</TableColumn>
                     <TableColumn>EPIC ID</TableColumn>
                     <TableColumn>NAME</TableColumn>
                     <TableColumn>DESCRIPTION</TableColumn>
@@ -210,6 +211,7 @@ const Epics: React.FC = () => {
                 <TableBody>
                     {filteredEpics.map((epic) => (
                         <TableRow key={epic.id}>
+                            <TableCell>{epic.project_name}</TableCell>
                             <TableCell>{epic.second_id}</TableCell>
                             <TableCell>{epic.name}</TableCell>
                             <TableCell>{epic.description}</TableCell>

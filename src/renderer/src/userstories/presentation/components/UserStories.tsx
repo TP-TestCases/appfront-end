@@ -357,6 +357,7 @@ const UserStories: React.FC = () => {
       />
       <Table aria-label="User stories table" removeWrapper>
         <TableHeader>
+          <TableColumn>EPIC ID</TableColumn>
           <TableColumn>NAME</TableColumn>
           <TableColumn>PRIORITY</TableColumn>
           <TableColumn>STATUS</TableColumn>
@@ -365,6 +366,7 @@ const UserStories: React.FC = () => {
         <TableBody>
           {filteredStories.map((story) => (
             <TableRow key={story.id}>
+              <TableCell>{story.epic_second_id}</TableCell>
               <TableCell>{story.name}</TableCell>
               <TableCell>{story.priority}</TableCell>
               <TableCell>
