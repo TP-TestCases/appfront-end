@@ -15,10 +15,22 @@ import EditCreateModal from '../../../shared/components/EditCreateModal'
 import { Epic } from '@renderer/epics/domain/Epic'
 import { EpicService } from '@renderer/epics/application/EpicService'
 import { ApiEpicRepository } from '@renderer/epics/infrastructure/ApiEpicRepository'
+import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository'
 import { useNotification } from '@renderer/shared/utils/useNotification'
 
-const PROJECT_ID = 1
+const getUserId = (): number | null => {
+    const user = localStorage.getItem('user')
+    if (!user) return null
+    try {
+        return JSON.parse(user).id
+    } catch {
+        return null
+    }
+}
+
 const epicService = new EpicService(new ApiEpicRepository())
+const projectRepository = new ApiProjectRepository()
+const PROJECT_ID = 1
 
 const Epics: React.FC = () => {
     const [epics, setEpics] = React.useState<Epic[]>([])
@@ -26,7 +38,10 @@ const Epics: React.FC = () => {
     const [searchQuery, setSearchQuery] = React.useState('')
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [editingEpic, setEditingEpic] = React.useState<Epic | null>(null)
-    const [form, setForm] = React.useState({ name: '', description: '', status_epic: true })
+    const [form, setForm] = React.useState({ project_id: '', name: '', description: '', status_epic: true })
+    const userId = getUserId()
+    const [projectOptions, setProjectOptions] = React.useState<{ id: number; second_id: string; name: string }[]>([])
+    const [projectLoading, setProjectLoading] = React.useState(false)
     const notify = useNotification()
 
     React.useEffect(() => {
@@ -50,15 +65,20 @@ const Epics: React.FC = () => {
         setSearchQuery(query)
     }
 
-    const handleEdit = (epic: Epic): void => {
-        setEditingEpic(epic)
-        setForm({ name: epic.name, description: epic.description, status_epic: epic.status_epic })
+    const handleCreate = (): void => {
+        setEditingEpic(null)
+        setForm({ project_id: '', name: '', description: '', status_epic: true })
         onOpen()
     }
 
-    const handleCreate = (): void => {
-        setEditingEpic(null)
-        setForm({ name: '', description: '', status_epic: true })
+    const handleEdit = (epic: Epic): void => {
+        setEditingEpic(epic)
+        setForm({
+            project_id: String(epic.project_id),
+            name: epic.name,
+            description: epic.description,
+            status_epic: epic.status_epic
+        })
         onOpen()
     }
 
@@ -95,7 +115,40 @@ const Epics: React.FC = () => {
         onClose()
     }
 
+    const handleProjectSelectOpen = async (): Promise<void> => {
+        if (!userId) return
+        setProjectLoading(true)
+        try {
+            console.log('Cargando proyectos para el usuario:', userId)
+            const projects = await projectRepository.listShort(userId)
+            setProjectOptions(projects)
+            if (projects.length > 0) {
+                notify(`Se cargaron ${projects.length} proyectos`, 'success')
+            } else {
+                notify('No hay proyectos disponibles para este usuario', 'info')
+            }
+        } catch {
+            notify('Error al cargar proyectos', 'error')
+        }
+        setProjectLoading(false)
+    }
+
     const fields = [
+        {
+            name: 'project_id',
+            label: 'Proyecto',
+            type: 'select' as const,
+            value: form.project_id,
+            onOpen: handleProjectSelectOpen,
+            onChange: (value: string) => setForm((f) => ({ ...f, project_id: value })),
+            options: projectOptions.map((p) => ({
+                label: `${p.second_id} - ${p.name}`,
+                value: String(p.id)
+            })),
+            required: true,
+            loading: projectLoading,
+            placeholder: 'Selecciona un proyecto'
+        },
         {
             name: 'name',
             label: 'Name',
