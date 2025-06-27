@@ -17,6 +17,7 @@ import { UserStory } from '@renderer/userstories/domain/userStory'
 import { ApiUserStoryRepository } from '@renderer/userstories/infrastructure/ApiUserStoryRepository'
 import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository'
 import { useNotification } from '@renderer/shared/utils/useNotification'
+import { ApiEpicRepository } from '@renderer/epics/infrastructure/ApiEpicRepository'
 
 const getUserId = (): number | null => {
   const user = localStorage.getItem('user')
@@ -30,12 +31,17 @@ const getUserId = (): number | null => {
 
 const userStoryService = new UserStoryService(new ApiUserStoryRepository())
 const projectRepository = new ApiProjectRepository()
+const epicRepository = new ApiEpicRepository()
 const EPIC_ID = 1
 
 const UserStories: React.FC = () => {
   const userId = getUserId()
   const [projectOptions, setProjectOptions] = React.useState<{ id: number; name: string }[]>([])
   const [projectLoading, setProjectLoading] = React.useState(false)
+
+  const [epicOptions, setEpicOptions] = React.useState<{ id: number; second_id: string; name: string }[]>([])
+  const [epicLoading, setEpicLoading] = React.useState(false)
+
   const notify = useNotification()
 
   const [stories, setStories] = React.useState<UserStory[]>([])
@@ -45,6 +51,7 @@ const UserStories: React.FC = () => {
   const [editingStory, setEditingStory] = React.useState<UserStory | null>(null)
   const [form, setForm] = React.useState({
     project_id: '',
+    epic_id: '',
     name: '',
     rol: '',
     description: '',
@@ -83,6 +90,7 @@ const UserStories: React.FC = () => {
     setEditingStory(story)
     setForm((prev) => ({
       project_id: prev.project_id,
+      epic_id: prev.epic_id,
       name: story.name,
       rol: story.rol,
       description: story.description,
@@ -102,6 +110,7 @@ const UserStories: React.FC = () => {
     handleProjectSelectOpen()
     setForm({
       project_id: '',
+      epic_id: '',
       name: '',
       rol: '',
       description: '',
@@ -140,7 +149,7 @@ const UserStories: React.FC = () => {
     } else {
       try {
         const created = await userStoryService.create(
-          EPIC_ID,
+          Number(form.epic_id),
           form.name,
           form.rol,
           form.description,
@@ -182,14 +191,36 @@ const UserStories: React.FC = () => {
     setProjectLoading(false)
   }
 
+  const handleEpicSelectOpen = async (): Promise<void> => {
+    if (!form.project_id) return
+    setEpicLoading(true)
+    try {
+      const epics = await epicRepository.listShort(Number(form.project_id))
+      setEpicOptions(epics)
+      if (epics.length > 0) {
+        notify(`Se cargaron ${epics.length} épicas`, 'success')
+      } else {
+        notify('No hay épicas disponibles para este proyecto', 'info')
+      }
+    } catch {
+      notify('Error al cargar épicas', 'error')
+    }
+    setEpicLoading(false)
+  }
+
   const fields = [
     ...(!editingStory
-      ? [{
+      ? [
+        {
           name: 'project_id',
           label: 'Proyecto',
           type: 'select' as const,
           value: form.project_id,
-          onChange: (value: string) => setForm((f) => ({ ...f, project_id: value })),
+          onOpen: handleEpicSelectOpen,
+          onChange: (value: string) => {
+            setForm((f) => ({ ...f, project_id: value, epic_id: '' }))
+            setEpicOptions([])
+          },
           options: projectOptions.map((p) => ({
             label: p.name,
             value: String(p.id)
@@ -197,7 +228,23 @@ const UserStories: React.FC = () => {
           required: true,
           loading: projectLoading,
           placeholder: 'Selecciona un proyecto'
-        }]
+        },
+        {
+          name: 'epic_id',
+          label: 'Épica',
+          type: 'select' as const,
+          value: form.epic_id,
+          onChange: (value: string) => setForm((f) => ({ ...f, epic_id: value })),
+          options: epicOptions.map((e) => ({
+            label: e.second_id,
+            value: String(e.id)
+          })),
+          required: true,
+          loading: epicLoading,
+          placeholder: 'Selecciona una épica',
+          disabled: !form.project_id // Deshabilitar si no hay proyecto seleccionado
+        }
+      ]
       : []
     ),
     {
