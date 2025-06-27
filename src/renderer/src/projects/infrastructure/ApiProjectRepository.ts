@@ -27,7 +27,7 @@ export class ApiProjectRepository implements ProjectRepository {
         return data.map((p: { id: number; name: string; description: string; status_project: boolean; user_id: number; created_at: string; updated_at: string }) => this.mapProject(p))
     }
 
-    async listShort(userId: number): Promise<{ id: number; second_id: string; name: string }[]> {
+    async listShort(userId: number): Promise<{ id: number; name: string }[]> {
         const response = await fetch(`${this.baseUrl}/projects/user/${userId}/short`)
         if (!response.ok) {
             throw new Error('Failed to load short projects')

@@ -12,10 +12,10 @@ export class InMemoryProjectRepository implements ProjectRepository {
         return this.projects.filter((p) => p.userId === userId)
     }
 
-    async listShort(userId: number): Promise<{ id: number; second_id: string; name: string }[]> {
+    async listShort(userId: number): Promise<{ id: number; name: string }[]> {
         return this.projects
             .filter((p) => p.userId === userId)
-            .map((p) => ({ id: p.id, second_id: p.id.toString(), name: p.name }))
+            .map((p) => ({ id: p.id, name: p.name }))
     }
 
     async create(userId: number, name: string, description: string, status_project: boolean): Promise<Project> {
