@@ -40,7 +40,7 @@ const Epics: React.FC = () => {
     const [editingEpic, setEditingEpic] = React.useState<Epic | null>(null)
     const [form, setForm] = React.useState({ project_id: '', name: '', description: '', status_epic: true })
     const userId = getUserId()
-    const [projectOptions, setProjectOptions] = React.useState<{ id: number; second_id: string; name: string }[]>([])
+    const [projectOptions, setProjectOptions] = React.useState<{ id: number; name: string }[]>([])
     const [projectLoading, setProjectLoading] = React.useState(false)
     const notify = useNotification()
 
@@ -68,6 +68,7 @@ const Epics: React.FC = () => {
     const handleCreate = (): void => {
         setEditingEpic(null)
         setForm({ project_id: '', name: '', description: '', status_epic: true })
+        handleProjectSelectOpen()
         onOpen()
     }
 
@@ -83,7 +84,7 @@ const Epics: React.FC = () => {
     }
 
     const handleSave = async (): Promise<void> => {
-        if (!form.name.trim()) return
+        if (!form.name.trim() || !form.project_id) return
         if (editingEpic) {
             try {
                 const updated = await epicService.update(
@@ -101,7 +102,7 @@ const Epics: React.FC = () => {
         } else {
             try {
                 const created = await epicService.create(
-                    PROJECT_ID,
+                    Number(form.project_id),
                     form.name,
                     form.description,
                 )
@@ -134,21 +135,23 @@ const Epics: React.FC = () => {
     }
 
     const fields = [
-        {
-            name: 'project_id',
-            label: 'Proyecto',
-            type: 'select' as const,
-            value: form.project_id,
-            onOpen: handleProjectSelectOpen,
-            onChange: (value: string) => setForm((f) => ({ ...f, project_id: value })),
-            options: projectOptions.map((p) => ({
-                label: `${p.second_id} - ${p.name}`,
-                value: String(p.id)
-            })),
-            required: true,
-            loading: projectLoading,
-            placeholder: 'Selecciona un proyecto'
-        },
+        ...(!editingEpic
+            ? [{
+                name: 'project_id',
+                label: 'Proyecto',
+                type: 'select' as const,
+                value: form.project_id,
+                onChange: (value: string) => setForm((f) => ({ ...f, project_id: value })),
+                options: projectOptions.map((p) => ({
+                    label: p.name,
+                    value: String(p.id)
+                })),
+                required: true,
+                loading: projectLoading,
+                placeholder: 'Selecciona un proyecto'
+            }]
+            : []
+        ),
         {
             name: 'name',
             label: 'Name',
@@ -198,6 +201,7 @@ const Epics: React.FC = () => {
             />
             <Table aria-label="Epics table" removeWrapper>
                 <TableHeader>
+                    <TableColumn>EPIC ID</TableColumn>
                     <TableColumn>NAME</TableColumn>
                     <TableColumn>DESCRIPTION</TableColumn>
                     <TableColumn>STATUS</TableColumn>
@@ -206,6 +210,7 @@ const Epics: React.FC = () => {
                 <TableBody>
                     {filteredEpics.map((epic) => (
                         <TableRow key={epic.id}>
+                            <TableCell>{epic.second_id}</TableCell>
                             <TableCell>{epic.name}</TableCell>
                             <TableCell>{epic.description}</TableCell>
                             <TableCell>
