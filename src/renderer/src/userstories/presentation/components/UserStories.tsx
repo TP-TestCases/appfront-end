@@ -142,12 +142,6 @@ const UserStories: React.FC = () => {
     // Implement import functionality
   }
 
-  const statusOptions = [
-    { label: 'To Do', value: 'To Do' },
-    { label: 'In Progress', value: 'In Progress' },
-    { label: 'Done', value: 'Done' }
-  ]
-
   const fields = [
     {
       name: 'name',
@@ -218,10 +212,13 @@ const UserStories: React.FC = () => {
         {
           name: 'status_user_stories',
           label: 'Activo',
-          type: 'select' as const,
+          type: "select" as const,
           value: form.status_user_stories ? '1' : '0',
           onChange: (value: string) => setForm((f) => ({ ...f, status_user_stories: value === '1' })),
-          options: statusOptions,
+          options: [
+            { label: 'Activo', value: '1' },
+            { label: 'Inactivo', value: '0' }
+          ],
           required: true
         }
       ]
