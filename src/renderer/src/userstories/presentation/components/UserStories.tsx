@@ -15,17 +15,36 @@ import EditCreateModal from '../../../shared/components/EditCreateModal'
 import { UserStoryService } from '@renderer/userstories/application/UserStoryService'
 import { UserStory } from '@renderer/userstories/domain/userStory'
 import { ApiUserStoryRepository } from '@renderer/userstories/infrastructure/ApiUserStoryRepository'
+import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository'
+import { useNotification } from '@renderer/shared/utils/useNotification'
+
+const getUserId = (): number | null => {
+  const user = localStorage.getItem('user')
+  if (!user) return null
+  try {
+    return JSON.parse(user).id
+  } catch {
+    return null
+  }
+}
 
 const userStoryService = new UserStoryService(new ApiUserStoryRepository())
+const projectRepository = new ApiProjectRepository()
 const EPIC_ID = 1
 
 const UserStories: React.FC = () => {
+  const userId = getUserId()
+  const [projectOptions, setProjectOptions] = React.useState<{ id: number; name: string }[]>([])
+  const [projectLoading, setProjectLoading] = React.useState(false)
+  const notify = useNotification()
+
   const [stories, setStories] = React.useState<UserStory[]>([])
   const [filteredStories, setFilteredStories] = React.useState<UserStory[]>([])
   const [searchQuery, setSearchQuery] = React.useState('')
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [editingStory, setEditingStory] = React.useState<UserStory | null>(null)
   const [form, setForm] = React.useState({
+    project_id: '',
     name: '',
     rol: '',
     description: '',
@@ -62,7 +81,8 @@ const UserStories: React.FC = () => {
 
   const handleEdit = (story: UserStory): void => {
     setEditingStory(story)
-    setForm({
+    setForm((prev) => ({
+      project_id: prev.project_id,
       name: story.name,
       rol: story.rol,
       description: story.description,
@@ -73,13 +93,15 @@ const UserStories: React.FC = () => {
       dependencies: story.dependencies,
       summary: story.summary,
       status_user_stories: story.status_user_stories
-    })
+    }))
     onOpen()
   }
 
   const handleCreate = (): void => {
     setEditingStory(null)
+    handleProjectSelectOpen()
     setForm({
+      project_id: '',
       name: '',
       rol: '',
       description: '',
@@ -142,7 +164,42 @@ const UserStories: React.FC = () => {
     // Implement import functionality
   }
 
+  const handleProjectSelectOpen = async (): Promise<void> => {
+    if (!userId) return
+    setProjectLoading(true)
+    try {
+      console.log('Cargando proyectos para el usuario:', userId)
+      const projects = await projectRepository.listShort(userId)
+      setProjectOptions(projects)
+      if (projects.length > 0) {
+        notify(`Se cargaron ${projects.length} proyectos`, 'success')
+      } else {
+        notify('No hay proyectos disponibles para este usuario', 'info')
+      }
+    } catch {
+      notify('Error al cargar proyectos', 'error')
+    }
+    setProjectLoading(false)
+  }
+
   const fields = [
+    ...(!editingStory
+      ? [{
+          name: 'project_id',
+          label: 'Proyecto',
+          type: 'select' as const,
+          value: form.project_id,
+          onChange: (value: string) => setForm((f) => ({ ...f, project_id: value })),
+          options: projectOptions.map((p) => ({
+            label: p.name,
+            value: String(p.id)
+          })),
+          required: true,
+          loading: projectLoading,
+          placeholder: 'Selecciona un proyecto'
+        }]
+      : []
+    ),
     {
       name: 'name',
       label: 'Name',
