@@ -11,6 +11,8 @@ interface Field {
     required?: boolean
     type?: 'text' | 'select' | 'date' | 'number' | 'password'
     options?: { label: string; value: string }[]
+    onOpen?: () => void
+    loading?: boolean
     placeholder?: string
 }
 
@@ -70,7 +72,9 @@ const EditCreateModal: React.FC<EditCreateModalProps> = ({
                                         id={field.name}
                                         value={field.value}
                                         onChange={(e) => field.onChange(e.target.value)}
+                                        onFocus={field.onOpen}
                                         required={field.required}
+                                        disabled={field.loading}
                                         className="w-full bg-gray-50 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                                     >
                                         <option value="" disabled>
