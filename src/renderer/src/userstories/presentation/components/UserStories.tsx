@@ -12,46 +12,40 @@ import {
 } from '@nextui-org/react'
 import { Icon } from '@iconify/react'
 import EditCreateModal from '../../../shared/components/EditCreateModal'
-import { InMemoryUserStoryRepository } from '@renderer/userstories/infrastructure/InMemoryUserStoryRepository'
 import { UserStoryService } from '@renderer/userstories/application/UserStoryService'
 import { UserStory } from '@renderer/userstories/domain/userStory'
+import { ApiUserStoryRepository } from '@renderer/userstories/infrastructure/ApiUserStoryRepository'
 
-const repository = new InMemoryUserStoryRepository([
-  {
-    id: 1,
-    title: 'Refine backlog ordering',
-    epic: 'Epic 001',
-    status: 'To Do'
-  },
-  {
-    id: 2,
-    title: 'Implement story import',
-    epic: 'Epic 001',
-    status: 'In Progress'
-  },
-  {
-    id: 3,
-    title: 'Validate acceptance criteria',
-    epic: 'Epic 001',
-    status: 'Done'
-  }
-])
-
-const userStoryService = new UserStoryService(repository)
+const userStoryService = new UserStoryService(new ApiUserStoryRepository())
+const EPIC_ID = 1
 
 const UserStories: React.FC = () => {
   const [stories, setStories] = React.useState<UserStory[]>([])
   const [filteredStories, setFilteredStories] = React.useState<UserStory[]>([])
   const [searchQuery, setSearchQuery] = React.useState('')
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [editingStory, setEditingStory] = React.useState(null)
-  const [form, setForm] = React.useState({ title: '', epic: '', status: '' })
+  const [editingStory, setEditingStory] = React.useState<UserStory | null>(null)
+  const [form, setForm] = React.useState({
+    name: '',
+    rol: '',
+    description: '',
+    acceptance_criteria: '',
+    dod: '',
+    priority: '',
+    story_points: 0,
+    dependencies: '',
+    summary: '',
+    status_user_stories: true
+  })
 
   React.useEffect(() => {
-    userStoryService.getStories().then((data) => {
-      setStories(data)
-      setFilteredStories(data)
-    })
+    userStoryService
+      .list(EPIC_ID)
+      .then((data) => {
+        setStories(data)
+        setFilteredStories(data)
+      })
+      .catch(console.error)
   }, [])
 
   const handleSearch = (query: string): void => {
@@ -59,36 +53,87 @@ const UserStories: React.FC = () => {
     setFilteredStories(
       stories.filter(
         (story) =>
-          story.title.toLowerCase().includes(query.toLowerCase()) ||
-          story.epic.toLowerCase().includes(query.toLowerCase()) ||
-          story.status.toLowerCase().includes(query.toLowerCase())
+          story.name.toLowerCase().includes(query.toLowerCase()) ||
+          story.description.toLowerCase().includes(query.toLowerCase()) ||
+          story.priority.toLowerCase().includes(query.toLowerCase())
       )
     )
   }
 
-  const handleEdit = (story): void => {
+  const handleEdit = (story: UserStory): void => {
     setEditingStory(story)
-    setForm({ title: story.title, epic: story.epic, status: story.status })
+    setForm({
+      name: story.name,
+      rol: story.rol,
+      description: story.description,
+      acceptance_criteria: story.acceptance_criteria,
+      dod: story.dod,
+      priority: story.priority,
+      story_points: story.story_points,
+      dependencies: story.dependencies,
+      summary: story.summary,
+      status_user_stories: story.status_user_stories
+    })
     onOpen()
   }
 
   const handleCreate = (): void => {
     setEditingStory(null)
-    setForm({ title: '', epic: '', status: '' })
+    setForm({
+      name: '',
+      rol: '',
+      description: '',
+      acceptance_criteria: '',
+      dod: '',
+      priority: '',
+      story_points: 0,
+      dependencies: '',
+      summary: '',
+      status_user_stories: true
+    })
     onOpen()
   }
 
-  const handleSave = (updatedStory): void => {
+  const handleSave = async (): Promise<void> => {
     if (editingStory) {
-      const updated = stories.map((s) => (s.id === updatedStory.id ? updatedStory : s))
-      setStories(updated)
-      setFilteredStories(updated)
-      userStoryService.saveStories(updated)
+      try {
+        const updated = await userStoryService.update(
+          editingStory.id,
+          form.name,
+          form.rol,
+          form.description,
+          form.acceptance_criteria,
+          form.dod,
+          form.priority,
+          form.story_points,
+          form.dependencies,
+          form.status_user_stories,
+          form.summary
+        )
+        setStories((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
+        setFilteredStories((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
+      } catch (e) {
+        console.error(e)
+      }
     } else {
-      const newStories = [...stories, { ...updatedStory, id: stories.length + 1 }]
-      setStories(newStories)
-      setFilteredStories(newStories)
-      userStoryService.saveStories(newStories)
+      try {
+        const created = await userStoryService.create(
+          EPIC_ID,
+          form.name,
+          form.rol,
+          form.description,
+          form.acceptance_criteria,
+          form.dod,
+          form.priority,
+          form.story_points,
+          form.dependencies,
+          form.summary
+        )
+        setStories((prev) => [...prev, created])
+        setFilteredStories((prev) => [...prev, created])
+      } catch (e) {
+        console.error(e)
+      }
     }
     onClose()
   }
@@ -105,29 +150,82 @@ const UserStories: React.FC = () => {
 
   const fields = [
     {
-      name: 'title',
-      label: 'Title',
-      value: form.title,
-      onChange: (value: string) => setForm((f) => ({ ...f, title: value })),
+      name: 'name',
+      label: 'Name',
+      value: form.name,
+      onChange: (value: string) => setForm((f) => ({ ...f, name: value })),
       required: true
     },
     {
-      name: 'epic',
-      label: 'Epic',
-      value: form.epic,
-      onChange: (value: string) => setForm((f) => ({ ...f, epic: value })),
+      name: 'rol',
+      label: 'Rol',
+      value: form.rol,
+      onChange: (value: string) => setForm((f) => ({ ...f, rol: value })),
       required: true
     },
     {
-      name: 'status',
-      label: 'Status',
-      value: form.status,
-      onChange: (value: string) => setForm((f) => ({ ...f, status: value })),
-      required: true,
-      type: "select" as const,
-      options: statusOptions,
-      placeholder: 'Select status'
-    }
+      name: 'description',
+      label: 'Description',
+      value: form.description,
+      onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
+      required: true
+    },
+    {
+      name: 'acceptance_criteria',
+      label: 'Acceptance Criteria',
+      value: form.acceptance_criteria,
+      onChange: (value: string) => setForm((f) => ({ ...f, acceptance_criteria: value })),
+      required: true
+    },
+    {
+      name: 'dod',
+      label: 'DoD',
+      value: form.dod,
+      onChange: (value: string) => setForm((f) => ({ ...f, dod: value })),
+      required: true
+    },
+    {
+      name: 'priority',
+      label: 'Priority',
+      value: form.priority,
+      onChange: (value: string) => setForm((f) => ({ ...f, priority: value })),
+      required: true
+    },
+    {
+      name: 'story_points',
+      label: 'Story Points',
+      value: String(form.story_points),
+      onChange: (value: string) => setForm((f) => ({ ...f, story_points: Number(value) })),
+      type: 'number' as const,
+      required: true
+    },
+    {
+      name: 'dependencies',
+      label: 'Dependencies',
+      value: form.dependencies,
+      onChange: (value: string) => setForm((f) => ({ ...f, dependencies: value })),
+      required: true
+    },
+    {
+      name: 'summary',
+      label: 'Summary',
+      value: form.summary,
+      onChange: (value: string) => setForm((f) => ({ ...f, summary: value })),
+      required: true
+    },
+    ...(editingStory
+      ? [
+        {
+          name: 'status_user_stories',
+          label: 'Activo',
+          type: 'select' as const,
+          value: form.status_user_stories ? '1' : '0',
+          onChange: (value: string) => setForm((f) => ({ ...f, status_user_stories: value === '1' })),
+          options: statusOptions,
+          required: true
+        }
+      ]
+      : [])
   ]
 
   return (
@@ -154,17 +252,24 @@ const UserStories: React.FC = () => {
       />
       <Table aria-label="User stories table" removeWrapper>
         <TableHeader>
-          <TableColumn>TITLE</TableColumn>
-          <TableColumn>EPIC</TableColumn>
+          <TableColumn>NAME</TableColumn>
+          <TableColumn>PRIORITY</TableColumn>
           <TableColumn>STATUS</TableColumn>
           <TableColumn>ACTIONS</TableColumn>
         </TableHeader>
         <TableBody>
           {filteredStories.map((story) => (
             <TableRow key={story.id}>
-              <TableCell>{story.title}</TableCell>
-              <TableCell>{story.epic}</TableCell>
-              <TableCell>{story.status}</TableCell>
+              <TableCell>{story.name}</TableCell>
+              <TableCell>{story.priority}</TableCell>
+              <TableCell>
+                <span
+                  className={`px-3 py-1 rounded-2xl font-semibold text-sm ${story.status_user_stories ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'} w-24`}
+                  style={{ display: 'inline-block' }}
+                >
+                  {story.status_user_stories ? 'Activo' : 'Inactivo'}
+                </span>
+              </TableCell>
               <TableCell>
                 <Button size="sm" variant="light" onPress={() => handleEdit(story)}>
                   <Icon icon="lucide:edit" />
@@ -177,13 +282,7 @@ const UserStories: React.FC = () => {
       <EditCreateModal
         isOpen={isOpen}
         onClose={onClose}
-        onSave={() => {
-          if (editingStory) {
-            handleSave({ ...editingStory as UserStory, ...form })
-          } else {
-            handleSave(form)
-          }
-        }}
+        onSave={handleSave}
         title={editingStory ? 'Edit Story' : 'Create Story'}
         fields={fields}
       />
