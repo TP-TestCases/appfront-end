@@ -143,8 +143,10 @@ const UserStories: React.FC = () => {
         )
         setStories((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
         setFilteredStories((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
+        notify('Historia de usuario actualizada correctamente', 'success')
       } catch (e) {
         console.error(e)
+        notify('Error al actualizar la historia de usuario', 'error')
       }
     } else {
       try {
@@ -162,8 +164,10 @@ const UserStories: React.FC = () => {
         )
         setStories((prev) => [...prev, created])
         setFilteredStories((prev) => [...prev, created])
+        notify('Historia de usuario creada correctamente', 'success')
       } catch (e) {
         console.error(e)
+        notify('Error al crear la historia de usuario', 'error')
       }
     }
     onClose()
