@@ -2,24 +2,24 @@ import { Epic } from "../domain/Epic"
 import { EpicRepository } from "../domain/EpicRepository"
 
 export class InMemoryEpicRepository implements EpicRepository {
-    private epics: Epic[]
+    private epics: (Epic & { proyecto_id: number })[]
 
-    constructor(initial: Epic[] = []) {
+    constructor(initial: (Epic & { proyecto_id: number })[] = []) {
         this.epics = initial
     }
 
-    async listByUser(userId: number): Promise<Epic[]> {
-        return this.epics.filter((e) => e.user_id === userId)
-    }
-
-    async list(projectId: number): Promise<Epic[]> {
-        return this.epics.filter((e) => e.project_id === projectId)
-    }
-
-    async listShort(projectId: number): Promise<{ id: number; second_id: string; name: string }[]> {
+    async listByUser(): Promise<Epic[]> {
         return this.epics
-            .filter((e) => e.project_id === projectId)
-            .map((e) => ({ id: e.id, second_id: e.second_id, name: e.name }))
+    }
+
+    async list(proyecto_id: number): Promise<Epic[]> {
+        return this.epics.filter((e) => e.proyecto_id === proyecto_id)
+    }
+
+    async listShort(proyecto_id: number): Promise<{ id: number; fake_id: string; nombre: string }[]> {
+        return this.epics
+            .filter((e) => e.proyecto_id === proyecto_id)
+            .map((e) => ({ id: e.id, fake_id: e.fake_id, nombre: e.nombre }))
     }
 
     async get(id: number): Promise<Epic> {
@@ -28,32 +28,17 @@ export class InMemoryEpicRepository implements EpicRepository {
         return epic
     }
 
-    async create(projectId: number, name: string, description: string): Promise<Epic> {
+    async create(fake_id: string, nombre: string, descripcion: string, proyecto_id: number): Promise<Epic> {
         const nextId = this.epics.length ? Math.max(...this.epics.map((e) => e.id)) + 1 : 1
-        const newEpic: Epic = {
-            id: nextId,
-            user_id: null,
-            project_id: projectId,
-            project_name: '',
-            second_id: nextId.toString(),
-            name,
-            description,
-            status_epic: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: null
-        }
+        const newEpic = { id: nextId, fake_id, nombre, descripcion, proyecto_id }
         this.epics.push(newEpic)
         return newEpic
     }
 
-    async update(id: number, name: string, description: string, status_epic: boolean | null): Promise<Epic> {
+    async update(id: number, nombre: string, descripcion: string): Promise<Epic> {
         const epic = await this.get(id)
-        epic.name = name
-        epic.description = description
-        if (status_epic !== null) {
-            epic.status_epic = status_epic
-        }
-        epic.updatedAt = new Date().toISOString()
+        epic.nombre = nombre
+        epic.descripcion = descripcion
         return epic
     }
 

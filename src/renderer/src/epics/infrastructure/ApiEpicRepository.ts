@@ -7,26 +7,16 @@ export class ApiEpicRepository implements EpicRepository {
     constructor(private baseUrl: string = API_URL) { }
 
     private mapEpic(data: {
-        id: number;
-        project_id: number;
-        project_name: string;
-        second_id: string;
-        name: string;
-        description: string;
-        status_epic: boolean | number | null;
-        created_at: string;
-        updated_at: string;
+        id: number
+        fake_id: string
+        nombre: string
+        descripcion: string
     }): Epic {
         return {
             id: data.id,
-            project_id: data.project_id,
-            project_name: data.project_name,
-            second_id: data.second_id,
-            name: data.name,
-            description: data.description,
-            status_epic: !!data.status_epic,
-            createdAt: data.created_at,
-            updatedAt: data.updated_at
+            fake_id: data.fake_id,
+            nombre: data.nombre,
+            descripcion: data.descripcion
         }
     }
 
@@ -39,8 +29,8 @@ export class ApiEpicRepository implements EpicRepository {
         return data.map((e: Parameters<ApiEpicRepository['mapEpic']>[0]) => this.mapEpic(e))
     }
 
-    async list(projectId: number): Promise<Epic[]> {
-        const response = await fetch(`${this.baseUrl}/epics/project/${projectId}`)
+    async list(proyecto_id: number): Promise<Epic[]> {
+        const response = await fetch(`${this.baseUrl}/epics/proyecto/${proyecto_id}`)
         if (!response.ok) {
             throw new Error('Failed to load epics')
         }
@@ -48,8 +38,8 @@ export class ApiEpicRepository implements EpicRepository {
         return data.map((e: Parameters<ApiEpicRepository['mapEpic']>[0]) => this.mapEpic(e))
     }
 
-    async listShort(projectId: number): Promise<{ id: number; second_id: string; name: string }[]> {
-        const response = await fetch(`${this.baseUrl}/epics/project/${projectId}/short`)
+    async listShort(proyecto_id: number): Promise<{ id: number; fake_id: string; nombre: string }[]> {
+        const response = await fetch(`${this.baseUrl}/epics/proyecto/${proyecto_id}`)
         if (!response.ok) {
             throw new Error('Failed to load short epics')
         }
@@ -66,11 +56,11 @@ export class ApiEpicRepository implements EpicRepository {
         return this.mapEpic(data)
     }
 
-    async create(projectId: number, name: string, description: string): Promise<Epic> {
+    async create(fake_id: string, nombre: string, descripcion: string, proyecto_id: number): Promise<Epic> {
         const response = await fetch(`${this.baseUrl}/epics`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ project_id: projectId, name, description })
+            body: JSON.stringify({ fake_id, nombre, descripcion, proyecto_id })
         })
         if (!response.ok) {
             const err = await response.json().catch(() => null)
@@ -80,11 +70,11 @@ export class ApiEpicRepository implements EpicRepository {
         return this.mapEpic(data)
     }
 
-    async update(id: number, name: string, description: string, status_epic: boolean | null): Promise<Epic> {
+    async update(id: number, nombre: string, descripcion: string): Promise<Epic> {
         const response = await fetch(`${this.baseUrl}/epics/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, description, status_epic })
+            body: JSON.stringify({ nombre, descripcion })
         })
         if (!response.ok) {
             const err = await response.json().catch(() => null)

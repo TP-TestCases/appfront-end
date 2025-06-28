@@ -9,16 +9,16 @@ export class EpicService {
         return this.repository.listByUser(userId)
     }
 
-    list(projectId: number): Promise<Epic[]> {
-        return this.repository.list(projectId)
+    list(proyecto_id: number): Promise<Epic[]> {
+        return this.repository.list(proyecto_id)
     }
 
-    create(projectId: number, name: string, description: string): Promise<Epic> {
-        return this.repository.create(projectId, name, description)
+    create(fake_id: string, nombre: string, descripcion: string, proyecto_id: number): Promise<Epic> {
+        return this.repository.create(fake_id, nombre, descripcion, proyecto_id)
     }
 
-    update(id: number, name: string, description: string, status_epic: boolean | null): Promise<Epic> {
-        return this.repository.update(id, name, description, status_epic)
+    update(id: number, nombre: string, descripcion: string): Promise<Epic> {
+        return this.repository.update(id, nombre, descripcion)
     }
 
     delete(id: number): Promise<void> {
