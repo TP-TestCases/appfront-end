@@ -35,6 +35,7 @@ const TestCases: React.FC = () => {
     const [userStoryLoading, setUserStoryLoading] = React.useState(false)
     const [isGenerating, setIsGenerating] = React.useState(false)
     const [selectedUserStory, setSelectedUserStory] = React.useState<number | null>(null)
+    const [loading, setLoading] = React.useState(false)
 
     const handleUserStorySelectOpen = React.useCallback(async (): Promise<void> => {
         if (!userId) return
@@ -46,10 +47,12 @@ const TestCases: React.FC = () => {
                 fake_id: s.fakeId,
                 nombre: s.nombre
             })))
-        } catch {
+        } catch (error) {
+            console.error('Error loading user stories:', error)
             notify('Error al cargar historias de usuario', 'error')
+        } finally {
+            setUserStoryLoading(false)
         }
-        setUserStoryLoading(false)
     }, [userId, notify])
 
     const handleGenerate = async (userStoryId: number, promptExtra: string, dbFile: File): Promise<void> => {
@@ -67,12 +70,18 @@ const TestCases: React.FC = () => {
     }
 
     const loadTestCases = async (userStoryId: number): Promise<void> => {
+        setLoading(true)
         try {
             const data = await testCaseService.getTestCasesByUserStory(userStoryId)
-            setScenarios(data.scenarios)
-            setTestCases(data.testCases)
-        } catch {
+            setScenarios(data.scenarios || [])
+            setTestCases(data.testCases || [])
+        } catch (error) {
+            console.error('Error loading test cases:', error)
             notify('Error al cargar test cases', 'error')
+            setScenarios([])
+            setTestCases([])
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -88,6 +97,7 @@ const TestCases: React.FC = () => {
     }, [userId, handleUserStorySelectOpen])
 
     const getTestCasesByScenario = (scenarioId: number): TestCase[] => {
+        if (!testCases || !Array.isArray(testCases)) return []
         return testCases.filter(tc => tc.test_scenario_id === scenarioId)
     }
 
@@ -109,6 +119,19 @@ const TestCases: React.FC = () => {
         }
     }
 
+    const handleOpenGenerateModal = (): void => {
+        // Verificar que userStories existe y tiene elementos
+        if (!userStories || userStories.length === 0) {
+            if (userId) {
+                handleUserStorySelectOpen().then(() => {
+                    onOpen()
+                })
+            }
+        } else {
+            onOpen()
+        }
+    }
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -122,7 +145,7 @@ const TestCases: React.FC = () => {
                     tone="primary"
                     flat
                     fullWidth={false}
-                    onClick={onOpen}
+                    onClick={handleOpenGenerateModal}
                 >
                     <Icon icon="lucide:sparkles" className="h-4 w-4 mr-2" />
                     Generar con IA
@@ -138,24 +161,33 @@ const TestCases: React.FC = () => {
                     <select
                         value={selectedUserStory || ''}
                         onChange={(e) => e.target.value && handleUserStoryChange(Number(e.target.value))}
+                        disabled={userStoryLoading}
                         className="bg-gray-50 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                     >
                         <option value="" disabled>
-                            Selecciona una historia de usuario
+                            {userStoryLoading ? 'Cargando...' : 'Selecciona una historia de usuario'}
                         </option>
-                        {userStories.map((story) => (
+                        {userStories && userStories.map((story) => (
                             <option key={story.id} value={story.id}>
                                 {story.fake_id} - {story.nombre}
                             </option>
                         ))}
                     </select>
+                    {loading && (
+                        <Icon icon="lucide:loader-2" className="h-4 w-4 animate-spin text-green-500" />
+                    )}
                 </div>
             </div>
 
             {/* Test Cases Content */}
             {selectedUserStory && (
                 <div className="space-y-6">
-                    {scenarios.length === 0 ? (
+                    {loading ? (
+                        <div className="text-center py-12">
+                            <Icon icon="lucide:loader-2" className="h-8 w-8 animate-spin text-green-500 mx-auto mb-4" />
+                            <p className="text-gray-600">Cargando test cases...</p>
+                        </div>
+                    ) : scenarios.length === 0 ? (
                         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
                             <Icon icon="lucide:test-tube" className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -169,7 +201,7 @@ const TestCases: React.FC = () => {
                                 tone="primary"
                                 flat
                                 fullWidth={false}
-                                onClick={onOpen}
+                                onClick={handleOpenGenerateModal}
                             >
                                 <Icon icon="lucide:sparkles" className="h-4 w-4 mr-2" />
                                 Generar Test Cases
@@ -194,10 +226,11 @@ const TestCases: React.FC = () => {
                                                     <div className="flex items-center gap-2 mb-3">
                                                         <Icon icon={typeInfo.icon} className={`h-5 w-5 ${typeInfo.color}`} />
                                                         <span className="font-medium text-gray-800">{testCase.fake_id}</span>
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${testCase.tipo === 'happy' ? 'bg-green-100 text-green-800' :
-                                                                testCase.tipo === 'error' ? 'bg-red-100 text-red-800' :
-                                                                    'bg-yellow-100 text-yellow-800'
-                                                            }`}>
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                                            testCase.tipo === 'happy' ? 'bg-green-100 text-green-800' :
+                                                            testCase.tipo === 'error' ? 'bg-red-100 text-red-800' :
+                                                            'bg-yellow-100 text-yellow-800'
+                                                        }`}>
                                                             {getTypeLabel(testCase.tipo)}
                                                         </span>
                                                     </div>
@@ -232,9 +265,8 @@ const TestCases: React.FC = () => {
                 onClose={onClose}
                 onGenerate={handleGenerate}
                 loading={isGenerating}
-                userStories={userStories}
+                userStories={userStories || []}
                 userStoryLoading={userStoryLoading}
-                onUserStorySelectOpen={handleUserStorySelectOpen}
             />
         </div>
     )
