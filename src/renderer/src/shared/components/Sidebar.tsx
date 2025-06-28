@@ -5,7 +5,7 @@ import { Icon } from '@iconify/react'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: 'lucide:home' },
-  { to: '/chat', label: 'Chat', icon: 'lucide:message-circle' },
+  { to: '/testCases', label: 'Test Cases', icon: 'lucide:check-square' },
   { to: '/projects', label: 'Projects', icon: 'lucide:folder-kanban' },
   { to: '/epics', label: 'Epics', icon: 'lucide:git-branch-plus' },
   { to: '/user-stories', label: 'User Stories', icon: 'lucide:combine' },

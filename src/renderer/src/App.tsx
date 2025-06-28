@@ -7,10 +7,10 @@ import Login from './auth/presentation/components/Login';
 import Register from './auth/presentation/components/Register';
 import Projects from './projects/presentation/components/Projects';
 import UserStories from './userstories/presentation/components/UserStories';
-import Chat from './chat/presentation/components/Chat';
 import AccountSettings from './settings/presentation/components/AccountSettings';
 import Epics from './epics/presentation/components/Epics';
-import { NotificationProvider } from './shared/components/Notification' // <-- Importa el provider
+import TestCases from './testcases/presentation/components/TestCases';
+import { NotificationProvider } from './shared/components/Notification'
 
 const AppRoutes: React.FC<{ isLoggedIn: boolean; setIsLoggedIn: (v: boolean) => void }> = ({
   isLoggedIn,
@@ -42,7 +42,7 @@ const AppRoutes: React.FC<{ isLoggedIn: boolean; setIsLoggedIn: (v: boolean) => 
           <Route path="/" element={<Dashboard />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/user-stories" element={<UserStories />} />
-          <Route path="/chat" element={<Chat />} />
+          <Route path="/testCases" element={<TestCases />} />
           <Route path="/settings" element={<AccountSettings />} />
           <Route path="/epics" element={<Epics />} />
         </Routes>
