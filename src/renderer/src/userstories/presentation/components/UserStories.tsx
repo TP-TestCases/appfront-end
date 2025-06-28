@@ -18,6 +18,7 @@ import { ApiUserStoryRepository } from '@renderer/userstories/infrastructure/Api
 import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository'
 import { useNotification } from '@renderer/shared/utils/useNotification'
 import { ApiEpicRepository } from '@renderer/epics/infrastructure/ApiEpicRepository'
+import ImportModal from './ImportModal'
 
 const getUserId = (): number | null => {
   const user = localStorage.getItem('user')
@@ -47,6 +48,11 @@ const UserStories: React.FC = () => {
   const [filteredStories, setFilteredStories] = React.useState<UserStory[]>([])
   const [searchQuery, setSearchQuery] = React.useState('')
   const { isOpen, onOpen, onClose } = useDisclosure()
+  const {
+    isOpen: isImportOpen,
+    onOpen: onImportOpen,
+    onClose: onImportClose
+  } = useDisclosure()
   const [editingStory, setEditingStory] = React.useState<UserStory | null>(null)
   const [form, setForm] = React.useState({
     project_id: '',
@@ -62,6 +68,7 @@ const UserStories: React.FC = () => {
     dependencias: '',
     resumen: ''
   })
+  const [isImporting, setIsImporting] = React.useState(false)
 
   React.useEffect(() => {
     if (!userId) return
@@ -174,7 +181,27 @@ const UserStories: React.FC = () => {
   }
 
   const handleImport = (): void => {
-    // Implement import functionality
+    handleProjectSelectOpen()
+    onImportOpen()
+  }
+
+  const handleImportConfirm = async (projectId: number, file: File): Promise<void> => {
+    if (!userId) return
+
+    setIsImporting(true)
+    try {
+      await userStoryService.importFromExcel(projectId, file)
+      const data = await userStoryService.listByUser(userId)
+      setStories(data)
+      setFilteredStories(data)
+      notify('Historias importadas correctamente', 'success')
+      onImportClose()
+    } catch (e) {
+      console.error(e)
+      notify('Error al importar historias', 'error')
+    } finally {
+      setIsImporting(false)
+    }
   }
 
   const handleProjectSelectOpen = async (): Promise<void> => {
@@ -378,6 +405,16 @@ const UserStories: React.FC = () => {
         onSave={handleSave}
         title={editingStory ? 'Edit Story' : 'Create Story'}
         fields={fields}
+      />
+
+      <ImportModal
+        isOpen={isImportOpen}
+        onClose={onImportClose}
+        onImport={handleImportConfirm}
+        loading={isImporting}
+        projectOptions={projectOptions}
+        projectLoading={projectLoading}
+        onProjectSelectOpen={handleProjectSelectOpen}
       />
     </div>
   )

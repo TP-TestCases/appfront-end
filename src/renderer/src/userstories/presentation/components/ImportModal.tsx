@@ -19,11 +19,18 @@ const ImportModal: React.FC<ImportModalProps> = ({
     loading = false,
     projectOptions,
     projectLoading,
-    onProjectSelectOpen
 }) => {
     const [projectId, setProjectId] = React.useState('')
     const [file, setFile] = React.useState<File | null>(null)
     const [error, setError] = React.useState('')
+
+    React.useEffect(() => {
+        if (isOpen) {
+            setProjectId('')
+            setFile(null)
+            setError('')
+        }
+    }, [isOpen])
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         const selectedFile = e.target.files?.[0]
@@ -106,10 +113,13 @@ const ImportModal: React.FC<ImportModalProps> = ({
                                 id="projectSelect"
                                 value={projectId}
                                 onChange={(e) => setProjectId(e.target.value)}
-                                onFocus={onProjectSelectOpen}
                                 required
+                                disabled={projectLoading}
                                 className="w-full bg-gray-50 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                             >
+                                <option value="" disabled>
+                                    {projectLoading ? 'Cargando proyectos...' : 'Selecciona un proyecto'}
+                                </option>
                                 {projectOptions.map((project) => (
                                     <option key={project.id} value={String(project.id)}>
                                         {project.name}

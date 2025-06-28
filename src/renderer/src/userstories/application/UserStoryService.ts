@@ -31,4 +31,8 @@ export class UserStoryService {
     delete(id: number): Promise<void> {
         return this.repository.delete(id)
     }
+
+    importFromExcel(projectId: number, file: File): Promise<void> {
+        return this.repository.importFromExcel(projectId, file)
+    }
 }

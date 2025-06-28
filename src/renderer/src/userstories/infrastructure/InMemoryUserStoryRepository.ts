@@ -65,4 +65,9 @@ export class InMemoryUserStoryRepository implements UserStoryRepository {
     async delete(id: number): Promise<void> {
         this.stories = this.stories.filter((s) => s.id !== id)
     }
+
+    async importFromExcel(projectId: number, file: File): Promise<void> {
+        void projectId
+        void file
+    }
 }

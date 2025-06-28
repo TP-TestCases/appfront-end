@@ -129,4 +129,18 @@ export class ApiUserStoryRepository implements UserStoryRepository {
             throw new Error(err?.detail ?? 'Failed to delete user story')
         }
     }
+
+    async importFromExcel(projectId: number, file: File): Promise<void> {
+        const formData = new FormData()
+        formData.append('proyecto_id', String(projectId))
+        formData.append('archivo', file)
+        const response = await fetch(`${this.baseUrl}/importar/epics-us/`, {
+            method: 'POST',
+            body: formData
+        })
+        if (!response.ok) {
+            const err = await response.json().catch(() => null)
+            throw new Error(err?.detail ?? 'Failed to import epics and user stories')
+        }
+    }
 }
