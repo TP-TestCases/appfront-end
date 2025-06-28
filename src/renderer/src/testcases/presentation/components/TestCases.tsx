@@ -72,9 +72,22 @@ const TestCases: React.FC = () => {
     const loadTestCases = async (userStoryId: number): Promise<void> => {
         setLoading(true)
         try {
+            console.log(`Cargando test cases para User Story ID: ${userStoryId}`)
+
             const data = await testCaseService.getTestCasesByUserStory(userStoryId)
+
+            console.log('Escenarios recibidos:', data.scenarios)
+            console.log('Test cases recibidos:', data.testCases)
+
             setScenarios(data.scenarios || [])
             setTestCases(data.testCases || [])
+
+            if (data.scenarios.length > 0) {
+                notify(`Se cargaron ${data.scenarios.length} escenario(s) con ${data.testCases.length} test case(s)`, 'success')
+            } else {
+                notify('No se encontraron test cases para esta historia de usuario', 'info')
+            }
+
         } catch (error) {
             console.error('Error loading test cases:', error)
             notify('Error al cargar test cases', 'error')
@@ -226,11 +239,10 @@ const TestCases: React.FC = () => {
                                                     <div className="flex items-center gap-2 mb-3">
                                                         <Icon icon={typeInfo.icon} className={`h-5 w-5 ${typeInfo.color}`} />
                                                         <span className="font-medium text-gray-800">{testCase.fake_id}</span>
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                            testCase.tipo === 'happy' ? 'bg-green-100 text-green-800' :
-                                                            testCase.tipo === 'error' ? 'bg-red-100 text-red-800' :
-                                                            'bg-yellow-100 text-yellow-800'
-                                                        }`}>
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${testCase.tipo === 'happy' ? 'bg-green-100 text-green-800' :
+                                                                testCase.tipo === 'error' ? 'bg-red-100 text-red-800' :
+                                                                    'bg-yellow-100 text-yellow-800'
+                                                            }`}>
                                                             {getTypeLabel(testCase.tipo)}
                                                         </span>
                                                     </div>
