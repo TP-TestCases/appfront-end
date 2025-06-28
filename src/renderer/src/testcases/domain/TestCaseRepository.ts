@@ -12,4 +12,6 @@ export interface TestCaseRepository {
         scenarios: TestScenario[]
         testCases: TestCase[]
     }>
+
+    listByScenario(testScenarioId: number): Promise<TestCase[]>
 }

@@ -19,4 +19,8 @@ export class TestCaseService {
     }> {
         return this.repository.listByUserStory(userStoryId)
     }
+
+    async getTestCasesByScenario(testScenarioId: number): Promise<TestCase[]> {
+        return this.repository.listByScenario(testScenarioId)
+    }
 }

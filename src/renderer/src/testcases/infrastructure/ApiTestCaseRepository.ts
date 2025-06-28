@@ -34,10 +34,29 @@ export class ApiTestCaseRepository implements TestCaseRepository {
         scenarios: TestScenario[]
         testCases: TestCase[]
     }> {
-        const response = await fetch(`${this.baseUrl}/test-scenarios/user-story/${userStoryId}`)
+        const response = await fetch(`${this.baseUrl}/testscenarios/userstory/${userStoryId}`)
         if (!response.ok) {
             throw new Error('Error al cargar test cases')
         }
         return await response.json()
+    }
+
+    async listByScenario(testScenarioId: number): Promise<TestCase[]> {
+        const response = await fetch(`${this.baseUrl}/testcases/scenario/${testScenarioId}`)
+        if (!response.ok) {
+            throw new Error('Error al cargar test cases del escenario')
+        }
+        const data: Partial<TestCase>[] = await response.json()
+        return data.map((tc) => ({
+            id: tc.id!,
+            fake_id: tc.fake_id ?? '',
+            tipo: tc.tipo ?? 'happy',
+            datos_entrada: tc.datos_entrada ?? '',
+            pasos: tc.pasos ?? '',
+            resultado_esperado: tc.resultado_esperado ?? '',
+            resultado_real: tc.resultado_real ?? '',
+            estado: tc.estado ?? '',
+            test_scenario_id: testScenarioId
+        }))
     }
 }
