@@ -10,7 +10,6 @@ interface GenerateTestCasesModalProps {
   loading?: boolean
   userStories: { id: number; fake_id: string; nombre: string }[]
   userStoryLoading: boolean
-  onUserStorySelectOpen: () => Promise<void>
 }
 
 const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
@@ -19,8 +18,7 @@ const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
   onGenerate,
   loading = false,
   userStories,
-  userStoryLoading,
-  onUserStorySelectOpen
+  userStoryLoading
 }) => {
   const notify = useNotification()
   const [userStoryId, setUserStoryId] = React.useState('')
@@ -126,7 +124,6 @@ const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
                 id="userStorySelect"
                 value={userStoryId}
                 onChange={(e) => setUserStoryId(e.target.value)}
-                onFocus={onUserStorySelectOpen}
                 required
                 disabled={userStoryLoading}
                 className="w-full bg-gray-50 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
