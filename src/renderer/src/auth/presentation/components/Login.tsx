@@ -10,29 +10,29 @@ const authService = new AuthService()
 const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
   setIsLoggedIn,
 }) => {
-  const [form, setForm] = React.useState({ username: '', password: '' })
+  const [form, setForm] = React.useState({ nombre: '', contraseña: '' })
   const navigate = useNavigate()
   const notify = useNotification()
 
   const inputs = [
     {
-      id: 'username',
-      label: 'Username',
+      id: 'nombre',
+      label: 'Nombre',
       type: 'text',
-      value: form.username,
+      value: form.nombre,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, username: e.target.value }),
-      placeholder: 'Enter your username',
+        setForm({ ...form, nombre: e.target.value }),
+      placeholder: 'Ingresa tu nombre de usuario',
       required: true,
     },
     {
-      id: 'password',
-      label: 'Password',
+      id: 'contraseña',
+      label: 'Contraseña',
       type: 'password',
-      value: form.password,
+      value: form.contraseña,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, password: e.target.value }),
-      placeholder: 'Enter your password',
+        setForm({ ...form, contraseña: e.target.value }),
+      placeholder: 'Ingresa tu contraseña',
       required: true,
     },
   ]
@@ -40,8 +40,10 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     try {
-      await authService.login({ username: form.username, password: form.password })
-      const user = await authService.login({ username: form.username, password: form.password })
+      const user = await authService.login({
+        nombre: form.nombre,
+        contraseña: form.contraseña
+      })
       setIsLoggedIn(true)
       localStorage.setItem('user', JSON.stringify(user))
       notify('¡Login exitoso!', 'success')
@@ -50,7 +52,7 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
       if (e instanceof Error) {
         notify(e.message, 'error')
       } else {
-        notify('An unknown error occurred', 'error')
+        notify('Ocurrió un error desconocido', 'error')
       }
     }
   }

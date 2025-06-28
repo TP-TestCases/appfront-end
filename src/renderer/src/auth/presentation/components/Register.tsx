@@ -8,67 +8,55 @@ import { useNotification } from '@renderer/shared/utils/useNotification'
 const authService = new AuthService()
 const Register: React.FC = () => {
   const [form, setForm] = React.useState({
-    firstName: '',
-    lastName: '',
-    password: '',
-    confirmPassword: ''
+    nombre: '',
+    contraseña: '',
+    confirmarContraseña: ''
   })
   const navigate = useNavigate()
   const notify = useNotification()
 
   const inputs = [
     {
-      id: 'firstName',
-      label: 'First Name',
-      value: form.firstName,
+      id: 'nombre',
+      label: 'Nombre',
+      value: form.nombre,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, firstName: e.target.value }),
-      placeholder: 'Enter your first name',
+        setForm({ ...form, nombre: e.target.value }),
+      placeholder: 'Ingresa tu nombre',
       required: true,
     },
     {
-      id: 'lastName',
-      label: 'Last Name',
-      value: form.lastName,
-      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, lastName: e.target.value }),
-      placeholder: 'Enter your last name',
-      required: true,
-    },
-    {
-      id: 'password',
-      label: 'Password',
+      id: 'contraseña',
+      label: 'Contraseña',
       type: 'password',
-      value: form.password,
+      value: form.contraseña,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, password: e.target.value }),
-      placeholder: 'Create a password',
+        setForm({ ...form, contraseña: e.target.value }),
+      placeholder: 'Ingresa tu contraseña',
       required: true,
     },
     {
-      id: 'confirmPassword',
-      label: 'Confirm Password',
+      id: 'confirmarContraseña',
+      label: 'Confirmar Contraseña',
       type: 'password',
-      value: form.confirmPassword,
+      value: form.confirmarContraseña,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, confirmPassword: e.target.value }),
-      placeholder: 'Re-enter your password',
+        setForm({ ...form, confirmarContraseña: e.target.value }),
+      placeholder: 'Re-ingresa tu contraseña',
       required: true,
     },
   ]
 
   const handleRegister = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
-    if (form.password !== form.confirmPassword) {
-      notify('Passwords do not match', 'error')
+    if (form.contraseña !== form.confirmarContraseña) {
+      notify('Las contraseñas no coinciden', 'error')
       return
     }
     try {
       await authService.register({
-        firstName: form.firstName,
-        lastName: form.lastName,
-        password: form.password,
-        confirmPassword: form.confirmPassword
+        nombre: form.nombre,
+        contraseña: form.contraseña,
       })
       notify('¡Registro exitoso!', 'success')
       navigate('/')

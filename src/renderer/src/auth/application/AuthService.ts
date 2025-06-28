@@ -1,15 +1,13 @@
 import { User } from "../domain/user"
 
 export interface RegisterPayload {
-    firstName: string
-    lastName: string
-    password: string
-    confirmPassword: string
+    nombre: string
+    contraseña: string
 }
 
 export interface LoginPayload {
-    username: string
-    password: string
+    nombre: string
+    contraseña: string
 }
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -18,14 +16,14 @@ export class AuthService {
     constructor(private baseUrl = API_URL) { }
 
     async login(payload: LoginPayload): Promise<User> {
-        const response = await fetch(`${this.baseUrl}/auth/login`, {
+        const response = await fetch(`${this.baseUrl}/usuarios/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                username: payload.username,
-                password: payload.password
+                nombre: payload.nombre,
+                contraseña: payload.contraseña
             })
         })
 
@@ -37,23 +35,19 @@ export class AuthService {
         const data = await response.json()
         return {
             id: data.id,
-            username: data.username,
-            firstName: data.first_name,
-            lastName: data.last_name
+            nombre: data.nombre
         }
     }
 
     async register(payload: RegisterPayload): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/auth/register`, {
+        const response = await fetch(`${this.baseUrl}/usuarios`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                first_name: payload.firstName,
-                last_name: payload.lastName,
-                password: payload.password,
-                confirm_password: payload.confirmPassword
+                nombre: payload.nombre,
+                contraseña: payload.contraseña
             })
         })
 

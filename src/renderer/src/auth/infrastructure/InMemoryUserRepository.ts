@@ -1,4 +1,4 @@
-import { User } from '../../domain/auth/user'
+import { User } from '../domain/user'
 import { UserRepository } from './UserRepository'
 
 export class InMemoryUserRepository implements UserRepository {
