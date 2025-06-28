@@ -14,14 +14,12 @@ import { Icon } from '@iconify/react'
 import EditCreateModal from '../../../shared/components/EditCreateModal'
 import { ProjectService } from '@renderer/projects/application/ProjectService'
 import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository'
-import ConfirmModal from '@renderer/shared/components/ConfirmModalProps'
 import { useNotification } from '@renderer/shared/utils/useNotification'
 
 interface Project {
     id: number
-    name: string
-    description: string
-    status_project: boolean
+    nombre: string
+    descripcion: string
 }
 
 const service = new ProjectService(new ApiProjectRepository())
@@ -43,7 +41,7 @@ const Projects: React.FC = () => {
     const [searchQuery, setSearchQuery] = React.useState('')
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [editingProject, setEditingProject] = React.useState<Project | null>(null)
-    const [form, setForm] = React.useState({ name: '', description: '', status_project: true })
+    const [form, setForm] = React.useState({ nombre: '', descripcion: '' })
     const notify = useNotification()
 
     React.useEffect(() => {
@@ -57,9 +55,10 @@ const Projects: React.FC = () => {
 
     React.useEffect(() => {
         setFilteredProjects(
-            projects.filter((p) =>
-                p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                (p.description ?? '').toLowerCase().includes(searchQuery.toLowerCase())
+            projects.filter(
+                (p) =>
+                    p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (p.descripcion ?? '').toLowerCase().includes(searchQuery.toLowerCase())
             )
         )
     }, [searchQuery, projects])
@@ -70,22 +69,22 @@ const Projects: React.FC = () => {
 
     const handleEdit = (project: Project): void => {
         setEditingProject(project)
-        setForm({ name: project.name, description: project.description, status_project: project.status_project })
+        setForm({ nombre: project.nombre, descripcion: project.descripcion })
         onOpen()
     }
 
     const handleCreate = (): void => {
         setEditingProject(null)
-        setForm({ name: '', description: '', status_project: true })
+        setForm({ nombre: '', descripcion: '' })
         onOpen()
     }
 
     const handleSave = async (): Promise<void> => {
-        if (!form.name.trim() || !userId) return
+        if (!form.nombre.trim() || !userId) return
         if (editingProject) {
             try {
-                const updated = await service.update(editingProject.id, form.name, form.description, form.status_project)
-                setProjects((prev) => prev.map((p) => (p.id === updated.id ? { ...updated, description: form.description } : p)))
+                const updated = await service.update(editingProject.id, form.nombre, form.descripcion)
+                setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
                 notify('Proyecto actualizado correctamente', 'success')
             } catch (e) {
                 console.error(e)
@@ -93,8 +92,8 @@ const Projects: React.FC = () => {
             }
         } else {
             try {
-                const created = await service.create(userId, form.name, form.description, form.status_project)
-                setProjects((prev) => [...prev, { ...created, description: form.description }])
+                const created = await service.create(userId, form.nombre, form.descripcion)
+                setProjects((prev) => [...prev, created])
                 notify('Proyecto creado correctamente', 'success')
             } catch (e) {
                 console.error(e)
@@ -104,58 +103,21 @@ const Projects: React.FC = () => {
         onClose()
     }
 
-    const [showConfirm, setShowConfirm] = React.useState(false)
-    const [deleteId, setDeleteId] = React.useState<number | null>(null)
-
-
-    const handleDelete = async (id: number): Promise<void> => {
-        try {
-            await service.delete(id)
-            setProjects((prev) => prev.filter((p) => p.id !== id))
-            setFilteredProjects((prev) => prev.filter((p) => p.id !== id))
-        } catch (e) {
-            console.error(e)
-        }
-    }
-
-    const handleConfirmDelete = async (): Promise<void> => {
-        if (deleteId !== null) {
-            await handleDelete(deleteId)
-            setShowConfirm(false)
-            setDeleteId(null)
-        }
-    }
-
     const fields = [
         {
-            name: 'name',
-            label: 'Name',
-            value: form.name,
-            onChange: (value: string) => setForm((f) => ({ ...f, name: value })),
+            name: 'nombre',
+            label: 'Nombre',
+            value: form.nombre,
+            onChange: (value: string) => setForm((f) => ({ ...f, nombre: value })),
             required: true
         },
         {
-            name: 'description',
-            label: 'Description',
-            value: form.description,
-            onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
+            name: 'descripcion',
+            label: 'Descripción',
+            value: form.descripcion,
+            onChange: (value: string) => setForm((f) => ({ ...f, descripcion: value })),
             required: true
         },
-        ...(editingProject
-            ? [{
-                name: 'status_project',
-                label: 'Activo',
-                type: "select" as const,
-                value: form.status_project ? '1' : '0',
-                onChange: (value: string) => setForm((f) => ({ ...f, status_project: value === '1' })),
-                options: [
-                    { label: 'Activo', value: '1' },
-                    { label: 'Inactivo', value: '0' }
-                ],
-                required: true
-            }]
-            : []
-        )
     ]
 
     return (
@@ -176,28 +138,15 @@ const Projects: React.FC = () => {
             />
             <Table aria-label="Projects table" removeWrapper>
                 <TableHeader>
-                    <TableColumn>NAME</TableColumn>
-                    <TableColumn>DESCRIPTION</TableColumn>
-                    <TableColumn>STATUS</TableColumn>
-                    <TableColumn>ACTIONS</TableColumn>
+                    <TableColumn>NOMBRE</TableColumn>
+                    <TableColumn>DESCRIPCIÓN</TableColumn>
+                    <TableColumn>ACCIONES</TableColumn>
                 </TableHeader>
                 <TableBody>
                     {filteredProjects.map((project) => (
                         <TableRow key={project.id}>
-                            <TableCell>{project.name}</TableCell>
-                            <TableCell>{project.description}</TableCell>
-                            <TableCell>
-                                <span
-                                    className={` px-3 py-1 rounded-2xl font-semibold text-sm
-                                        ${project.status_project
-                                            ? 'bg-green-100 text-green-700'
-                                            : 'bg-red-100 text-red-600'}
-                                            w-24`}
-                                    style={{ display: 'inline-block' }}
-                                >
-                                    {project.status_project ? 'Activo' : 'Inactivo'}
-                                </span>
-                            </TableCell>
+                            <TableCell>{project.nombre}</TableCell>
+                            <TableCell>{project.descripcion}</TableCell>
                             <TableCell>
                                 <div className="flex gap-2">
                                     <Button
@@ -208,18 +157,6 @@ const Projects: React.FC = () => {
                                         aria-label="Editar"
                                     >
                                         <Icon icon="lucide:edit" />
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        variant="light"
-                                        color="danger"
-                                        onPress={() => {
-                                            setDeleteId(project.id)
-                                            setShowConfirm(true)
-                                        }}
-                                        aria-label="Eliminar"
-                                    >
-                                        <Icon icon="lucide:trash" />
                                     </Button>
                                 </div>
                             </TableCell>
@@ -233,13 +170,6 @@ const Projects: React.FC = () => {
                 onSave={handleSave}
                 title={editingProject ? 'Edit Project' : 'Create Project'}
                 fields={fields}
-            />
-            <ConfirmModal
-                isOpen={showConfirm}
-                title="Desactivar proyecto"
-                description="¿Estás seguro de que deseas desactivar este proyecto? Podrás volver a activarlo la edición."
-                onConfirm={handleConfirmDelete}
-                onCancel={() => setShowConfirm(false)}
             />
         </div>
     )

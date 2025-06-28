@@ -8,36 +8,32 @@ export class InMemoryProjectRepository implements ProjectRepository {
         this.projects = initial
     }
 
-    async list(userId: number): Promise<Project[]> {
-        return this.projects.filter((p) => p.userId === userId)
+    async list(usuarioId: number): Promise<Project[]> {
+        return this.projects.filter((p) => p.usuario_id === usuarioId)
     }
 
-    async listShort(userId: number): Promise<{ id: number; name: string }[]> {
+    async listShort(usuarioId: number): Promise<{ id: number; nombre: string }[]> {
         return this.projects
-            .filter((p) => p.userId === userId)
-            .map((p) => ({ id: p.id, name: p.name }))
+            .filter((p) => p.usuario_id === usuarioId)
+            .map((p) => ({ id: p.id, nombre: p.nombre }))
     }
 
-    async create(userId: number, name: string, description: string, status_project: boolean): Promise<Project> {
-        const now = new Date().toISOString()
+    async create(usuarioId: number, nombre: string, descripcion: string): Promise<Project> {
         const newProject: Project = {
             id: this.projects.length ? Math.max(...this.projects.map((p) => p.id)) + 1 : 1,
-            userId,
-            name,
-            description,
-            status_project,
-            createdAt: now,
+            usuario_id: usuarioId,
+            nombre,
+            descripcion
         }
         this.projects.push(newProject)
         return newProject
     }
 
-    async update(id: number, name: string, description: string, status_project: boolean): Promise<Project> {
+    async update(id: number, nombre: string, descripcion: string): Promise<Project> {
         const project = this.projects.find((p) => p.id === id)
         if (!project) throw new Error('Project not found')
-        project.name = name
-        project.description = description
-        project.status_project = status_project
+        project.nombre = nombre
+        project.descripcion = descripcion
         return project
     }
 
