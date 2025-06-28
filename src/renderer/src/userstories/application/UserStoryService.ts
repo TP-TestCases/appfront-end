@@ -20,12 +20,12 @@ export class UserStoryService {
         return this.repository.get(id)
     }
 
-    create(epic_id: number, name: string, rol: string, description: string, acceptance_criteria: string, dod: string, priority: string, story_points: number, dependencies: string, summary: string): Promise<UserStory> {
-        return this.repository.create(epic_id, name, rol, description, acceptance_criteria, dod, priority, story_points, dependencies, summary)
+    create(epicId: number, fakeId: string, nombre: string, rol: string, descripcion: string, criterios: string, dod: string, prioridad: string, puntos: number, dependencias: string, resumen: string): Promise<UserStory> {
+        return this.repository.create(epicId, fakeId, nombre, rol, descripcion, criterios, dod, prioridad, puntos, dependencias, resumen)
     }
 
-    update(id: number, name: string, rol: string, description: string, acceptance_criteria: string, dod: string, priority: string, story_points: number, dependencies: string, status_user_stories: boolean | null, summary: string): Promise<UserStory> {
-        return this.repository.update(id, name, rol, description, acceptance_criteria, dod, priority, story_points, dependencies, status_user_stories, summary)
+    update(id: number, nombre: string, rol: string, descripcion: string, criterios: string, dod: string, prioridad: string, puntos: number, dependencias: string, resumen: string): Promise<UserStory> {
+        return this.repository.update(id, nombre, rol, descripcion, criterios, dod, prioridad, puntos, dependencias, resumen)
     }
 
     delete(id: number): Promise<void> {

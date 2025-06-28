@@ -8,44 +8,36 @@ export class ApiUserStoryRepository implements UserStoryRepository {
 
     private mapStory(data: {
         id: number
-        epic_id: number
-        epic_second_id: string
-        second_id: string
-        name: string
+        fake_id: string
+        nombre: string
         rol: string
-        description: string
-        acceptance_criteria: string
+        descripcion: string
+        criterios: string
         dod: string
-        priority: string
-        story_points: number
-        dependencies: string
-        summary: string
-        status_user_stories: boolean | number | null
-        created_at: string
-        updated_at: string | null
+        prioridad: string
+        puntos: number
+        dependencias: string
+        resumen: string
+        epic_id: number
     }): UserStory {
         return {
             id: data.id,
-            epic_id: data.epic_id,
-            epic_second_id: data.epic_second_id,
-            second_id: data.second_id,
-            name: data.name,
+            fakeId: data.fake_id,
+            nombre: data.nombre,
             rol: data.rol,
-            description: data.description,
-            acceptance_criteria: data.acceptance_criteria,
+            descripcion: data.descripcion,
+            criterios: data.criterios,
             dod: data.dod,
-            priority: data.priority,
-            story_points: data.story_points,
-            dependencies: data.dependencies,
-            summary: data.summary,
-            status_user_stories: !!data.status_user_stories,
-            createdAt: data.created_at,
-            updatedAt: data.updated_at
+            prioridad: data.prioridad,
+            puntos: data.puntos,
+            dependencias: data.dependencias,
+            resumen: data.resumen,
+            epicId: data.epic_id
         }
     }
 
     async listByUser(userId: number): Promise<UserStory[]> {
-        const response = await fetch(`${this.baseUrl}/user_stories/user/${userId}`)
+        const response = await fetch(`${this.baseUrl}/userstories/user/${userId}`)
         if (!response.ok) {
             throw new Error('Failed to load user stories by user')
         }
@@ -54,7 +46,7 @@ export class ApiUserStoryRepository implements UserStoryRepository {
     }
 
     async list(epicId: number): Promise<UserStory[]> {
-        const response = await fetch(`${this.baseUrl}/user_stories/epic/${epicId}`)
+        const response = await fetch(`${this.baseUrl}/userstories/epic/${epicId}`)
         if (!response.ok) {
             throw new Error('Failed to load user stories')
         }
@@ -63,7 +55,7 @@ export class ApiUserStoryRepository implements UserStoryRepository {
     }
 
     async listShort(epicId: number): Promise<{ id: number; second_id: string; name: string }[]> {
-        const response = await fetch(`${this.baseUrl}/user_stories/epic/${epicId}/short`)
+        const response = await fetch(`${this.baseUrl}/userstories/epic/${epicId}`)
         if (!response.ok) {
             throw new Error('Failed to load short user stories')
         }
@@ -71,7 +63,7 @@ export class ApiUserStoryRepository implements UserStoryRepository {
     }
 
     async get(id: number): Promise<UserStory> {
-        const response = await fetch(`${this.baseUrl}/user_stories/${id}`)
+        const response = await fetch(`${this.baseUrl}/userstories/${id}`)
         if (!response.ok) {
             const err = await response.json().catch(() => null)
             throw new Error(err?.detail ?? 'User story not found')
@@ -80,21 +72,22 @@ export class ApiUserStoryRepository implements UserStoryRepository {
         return this.mapStory(data)
     }
 
-    async create(epic_id: number, name: string, rol: string, description: string, acceptance_criteria: string, dod: string, priority: string, story_points: number, dependencies: string, summary: string): Promise<UserStory> {
-        const response = await fetch(`${this.baseUrl}/user_stories`, {
+    async create(epicId: number, fakeId: string, nombre: string, rol: string, descripcion: string, criterios: string, dod: string, prioridad: string, puntos: number, dependencias: string, resumen: string): Promise<UserStory> {
+        const response = await fetch(`${this.baseUrl}/userstories`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                epic_id,
-                name,
+                epic_id: epicId,
+                fake_id: fakeId,
+                nombre,
                 rol,
-                description,
-                acceptance_criteria,
+                descripcion,
+                criterios,
                 dod,
-                priority,
-                story_points,
-                dependencies,
-                summary
+                prioridad,
+                puntos,
+                dependencias,
+                resumen
             })
         })
         if (!response.ok) {
@@ -105,21 +98,20 @@ export class ApiUserStoryRepository implements UserStoryRepository {
         return this.mapStory(data)
     }
 
-    async update(id: number, name: string, rol: string, description: string, acceptance_criteria: string, dod: string, priority: string, story_points: number, dependencies: string, status_user_stories: boolean | null, summary: string): Promise<UserStory> {
-        const response = await fetch(`${this.baseUrl}/user_stories/${id}`, {
+    async update(id: number, nombre: string, rol: string, descripcion: string, criterios: string, dod: string, prioridad: string, puntos: number, dependencias: string, resumen: string): Promise<UserStory> {
+        const response = await fetch(`${this.baseUrl}/userstories/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                name,
+                nombre,
                 rol,
-                description,
-                acceptance_criteria,
+                descripcion,
+                criterios,
                 dod,
-                priority,
-                story_points,
-                dependencies,
-                status_user_stories,
-                summary
+                prioridad,
+                puntos,
+                dependencias,
+                resumen
             })
         })
         if (!response.ok) {
@@ -131,7 +123,7 @@ export class ApiUserStoryRepository implements UserStoryRepository {
     }
 
     async delete(id: number): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/user_stories/${id}`, { method: 'DELETE' })
+        const response = await fetch(`${this.baseUrl}/userstories/${id}`, { method: 'DELETE' })
         if (!response.ok) {
             const err = await response.json().catch(() => null)
             throw new Error(err?.detail ?? 'Failed to delete user story')

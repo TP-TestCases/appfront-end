@@ -1,18 +1,14 @@
 export interface UserStory {
   id: number
-  epic_id: number
-  epic_second_id: string
-  second_id: string
-  name: string
+  fakeId: string
+  nombre: string
   rol: string
-  description: string
-  acceptance_criteria: string
+  descripcion: string
+  criterios: string
   dod: string
-  priority: string
-  story_points: number
-  dependencies: string
-  summary: string
-  status_user_stories: boolean
-  createdAt: string
-  updatedAt?: string | null
+  prioridad: string
+  puntos: number
+  dependencias: string
+  resumen: string
+  epicId: number
 }
