@@ -37,7 +37,7 @@ const Epics: React.FC = () => {
     const [searchQuery, setSearchQuery] = React.useState('')
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [editingEpic, setEditingEpic] = React.useState<Epic | null>(null)
-    const [form, setForm] = React.useState({ proyecto_id: '', fake_id: '', nombre: '', descripcion: '' })
+    const [form, setForm] = React.useState({ project_id: '', fake_id: '', name: '', description: '' })
     const userId = getUserId()
     const [projectOptions, setProjectOptions] = React.useState<{ id: number; name: string }[]>([])
     const [projectLoading, setProjectLoading] = React.useState(false)
@@ -55,8 +55,8 @@ const Epics: React.FC = () => {
     React.useEffect(() => {
         setFilteredEpics(
             epics.filter((e) =>
-                e.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                e.descripcion.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                e.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 e.fake_id.toLowerCase().includes(searchQuery.toLowerCase())
             )
         )
@@ -68,7 +68,7 @@ const Epics: React.FC = () => {
 
     const handleCreate = (): void => {
         setEditingEpic(null)
-        setForm({ proyecto_id: '', fake_id: '', nombre: '', descripcion: '' })
+        setForm({ project_id: '', fake_id: '', name: '', description: '' })
         handleProjectSelectOpen()
         onOpen()
     }
@@ -76,22 +76,22 @@ const Epics: React.FC = () => {
     const handleEdit = (epic: Epic): void => {
         setEditingEpic(epic)
         setForm({
-            proyecto_id: '',
+            project_id: '',
             fake_id: epic.fake_id,
-            nombre: epic.nombre,
-            descripcion: epic.descripcion
+            name: epic.name,
+            description: epic.description
         })
         onOpen()
     }
 
     const handleSave = async (): Promise<void> => {
-        if (!form.fake_id.trim() || !form.nombre.trim() || !form.proyecto_id) return
+        if (!form.fake_id.trim() || !form.name.trim() || !form.project_id) return
         if (editingEpic) {
             try {
                 const updated = await epicService.update(
                     editingEpic.id,
-                    form.nombre,
-                    form.descripcion
+                    form.name,
+                    form.description
                 )
                 setEpics((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
                 notify('Épica actualizada correctamente', 'success')
@@ -103,9 +103,9 @@ const Epics: React.FC = () => {
             try {
                 const created = await epicService.create(
                     form.fake_id,
-                    form.nombre,
-                    form.descripcion,
-                    Number(form.proyecto_id)
+                    form.name,
+                    form.description,
+                    Number(form.project_id)
                 )
                 setEpics((prev) => [...prev, created])
                 notify('Épica creada correctamente', 'success')
@@ -123,9 +123,9 @@ const Epics: React.FC = () => {
         try {
             console.log('Cargando proyectos para el usuario:', userId)
             const projects = await projectRepository.listShort(userId)
-            setProjectOptions(projects.map((p: { id: number; nombre: string }) => ({
+            setProjectOptions(projects.map((p: { id: number; name: string }) => ({
                 id: p.id,
-                name: p.nombre
+                name: p.name
             })))
             if (projects.length > 0) {
                 notify(`Se cargaron ${projects.length} proyectos`, 'success')
@@ -141,18 +141,18 @@ const Epics: React.FC = () => {
     const fields = [
         ...(!editingEpic
             ? [{
-                name: 'proyecto_id',
-                label: 'Proyecto',
+                name: 'project_id',
+                label: 'Project',
                 type: 'select' as const,
-                value: form.proyecto_id,
-                onChange: (value: string) => setForm((f) => ({ ...f, proyecto_id: value })),
+                value: form.project_id,
+                onChange: (value: string) => setForm((f) => ({ ...f, project_id: value })),
                 options: projectOptions.map((p) => ({
                     label: p.name,
                     value: String(p.id)
                 })),
                 required: true,
                 loading: projectLoading,
-                placeholder: 'Selecciona un proyecto'
+                placeholder: 'Select a project',
             }]
             : []
         ),
@@ -164,17 +164,17 @@ const Epics: React.FC = () => {
             required: true
         },
         {
-            name: 'nombre',
-            label: 'Nombre',
-            value: form.nombre,
-            onChange: (value: string) => setForm((f) => ({ ...f, nombre: value })),
+            name: 'name',
+            label: 'Name',
+            value: form.name,
+            onChange: (value: string) => setForm((f) => ({ ...f, name: value })),
             required: true
         },
         {
-            name: 'descripcion',
-            label: 'Descripción',
-            value: form.descripcion,
-            onChange: (value: string) => setForm((f) => ({ ...f, descripcion: value })),
+            name: 'description',
+            label: 'Description',
+            value: form.description,
+            onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
             required: true
         }
     ]
@@ -198,16 +198,16 @@ const Epics: React.FC = () => {
             <Table aria-label="Epics table" removeWrapper>
                 <TableHeader>
                     <TableColumn>EPIC ID</TableColumn>
-                    <TableColumn>NOMBRE</TableColumn>
-                    <TableColumn>DESCRIPCIÓN</TableColumn>
+                    <TableColumn>NAME</TableColumn>
+                    <TableColumn>DESCRIPTION</TableColumn>
                     <TableColumn>ACTIONS</TableColumn>
                 </TableHeader>
                 <TableBody>
                     {filteredEpics.map((epic) => (
                         <TableRow key={epic.id}>
                             <TableCell>{epic.fake_id}</TableCell>
-                            <TableCell>{epic.nombre}</TableCell>
-                            <TableCell>{epic.descripcion}</TableCell>
+                            <TableCell>{epic.name}</TableCell>
+                            <TableCell>{epic.description}</TableCell>
                             <TableCell>
                                 <Button size="sm" variant="light" onPress={() => handleEdit(epic)}>
                                     <Icon icon="lucide:edit" />
