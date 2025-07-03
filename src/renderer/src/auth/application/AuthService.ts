@@ -1,13 +1,13 @@
 import { User } from "../domain/user"
 
 export interface RegisterPayload {
-    nombre: string
-    contraseña: string
+    name: string
+    password: string
 }
 
 export interface LoginPayload {
-    nombre: string
-    contraseña: string
+    name: string
+    password: string
 }
 
 const API_URL = import.meta.env.VITE_API_URL
@@ -16,14 +16,14 @@ export class AuthService {
     constructor(private baseUrl = API_URL) { }
 
     async login(payload: LoginPayload): Promise<User> {
-        const response = await fetch(`${this.baseUrl}/usuarios/login`, {
+        const response = await fetch(`${this.baseUrl}/users/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                nombre: payload.nombre,
-                contraseña: payload.contraseña
+                name: payload.name,
+                password: payload.password
             })
         })
 
@@ -35,19 +35,19 @@ export class AuthService {
         const data = await response.json()
         return {
             id: data.id,
-            nombre: data.nombre
+            name: data.name
         }
     }
 
     async register(payload: RegisterPayload): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/usuarios`, {
+        const response = await fetch(`${this.baseUrl}/users`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                nombre: payload.nombre,
-                contraseña: payload.contraseña
+                name: payload.name,
+                password: payload.password
             })
         })
 

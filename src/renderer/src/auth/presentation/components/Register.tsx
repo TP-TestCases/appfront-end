@@ -8,55 +8,55 @@ import { useNotification } from '@renderer/shared/utils/useNotification'
 const authService = new AuthService()
 const Register: React.FC = () => {
   const [form, setForm] = React.useState({
-    nombre: '',
-    contraseña: '',
-    confirmarContraseña: ''
+    name: '',
+    password: '',
+    confirmPassword: ''
   })
   const navigate = useNavigate()
   const notify = useNotification()
 
   const inputs = [
     {
-      id: 'nombre',
-      label: 'Nombre',
-      value: form.nombre,
+      id: 'name',
+      label: 'Name',
+      value: form.name,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, nombre: e.target.value }),
-      placeholder: 'Ingresa tu nombre',
+        setForm({ ...form, name: e.target.value }),
+      placeholder: 'Enter your name',
       required: true,
     },
     {
-      id: 'contraseña',
-      label: 'Contraseña',
+      id: 'password',
+      label: 'Password',
       type: 'password',
-      value: form.contraseña,
+      value: form.password,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, contraseña: e.target.value }),
-      placeholder: 'Ingresa tu contraseña',
+        setForm({ ...form, password: e.target.value }),
+      placeholder: 'Enter your password',
       required: true,
     },
     {
-      id: 'confirmarContraseña',
-      label: 'Confirmar Contraseña',
+      id: 'confirmPassword',
+      label: 'Confirm Password',
       type: 'password',
-      value: form.confirmarContraseña,
+      value: form.confirmPassword,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, confirmarContraseña: e.target.value }),
-      placeholder: 'Re-ingresa tu contraseña',
+        setForm({ ...form, confirmPassword: e.target.value }),
+      placeholder: 'Re-enter your password',
       required: true,
     },
   ]
 
   const handleRegister = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
-    if (form.contraseña !== form.confirmarContraseña) {
-      notify('Las contraseñas no coinciden', 'error')
+    if (form.password !== form.confirmPassword) {
+      notify('Passwords do not match', 'error')
       return
     }
     try {
       await authService.register({
-        nombre: form.nombre,
-        contraseña: form.contraseña,
+        name: form.name,
+        password: form.password,
       })
       notify('¡Registro exitoso!', 'success')
       navigate('/')

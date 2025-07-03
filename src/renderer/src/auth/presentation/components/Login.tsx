@@ -10,29 +10,29 @@ const authService = new AuthService()
 const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
   setIsLoggedIn,
 }) => {
-  const [form, setForm] = React.useState({ nombre: '', contraseña: '' })
+  const [form, setForm] = React.useState({ name: '', password: '' })
   const navigate = useNavigate()
   const notify = useNotification()
 
   const inputs = [
     {
-      id: 'nombre',
-      label: 'Nombre',
+      id: 'name',
+      label: 'Name',
       type: 'text',
-      value: form.nombre,
+      value: form.name,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, nombre: e.target.value }),
-      placeholder: 'Ingresa tu nombre de usuario',
+        setForm({ ...form, name: e.target.value }),
+      placeholder: 'Enter your username',
       required: true,
     },
     {
-      id: 'contraseña',
-      label: 'Contraseña',
+      id: 'password',
+      label: 'Password',
       type: 'password',
-      value: form.contraseña,
+      value: form.password,
       onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
-        setForm({ ...form, contraseña: e.target.value }),
-      placeholder: 'Ingresa tu contraseña',
+        setForm({ ...form, password: e.target.value }),
+      placeholder: 'Enter your password',
       required: true,
     },
   ]
@@ -41,8 +41,8 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
     e.preventDefault()
     try {
       const user = await authService.login({
-        nombre: form.nombre,
-        contraseña: form.contraseña
+        name: form.name,
+        password: form.password
       })
       setIsLoggedIn(true)
       localStorage.setItem('user', JSON.stringify(user))
