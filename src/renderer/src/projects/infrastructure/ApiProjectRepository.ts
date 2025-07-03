@@ -8,43 +8,43 @@ export class ApiProjectRepository implements ProjectRepository {
 
     private mapProject(data: {
         id: number
-        nombre: string
-        descripcion: string
-        usuario_id: number
+        name: string
+        description: string
+        user_id: number
     }): Project {
         return {
             id: data.id,
-            nombre: data.nombre,
-            descripcion: data.descripcion,
-            usuario_id: data.usuario_id
+            name: data.name,
+            description: data.description,
+            user_id: data.user_id
         }
     }
 
-    async list(usuarioId: number): Promise<Project[]> {
-        const response = await fetch(`${this.baseUrl}/proyectos/usuario/${usuarioId}`)
+    async list(userId: number): Promise<Project[]> {
+        const response = await fetch(`${this.baseUrl}/projects/user/${userId}`)
         if (!response.ok) {
             throw new Error('Failed to load projects')
         }
         const data = await response.json()
-        return data.map((p: { id: number; nombre: string; descripcion: string; usuario_id: number }) =>
+        return data.map((p: { id: number; name: string; description: string; user_id: number }) =>
             this.mapProject(p)
         )
     }
 
-    async listShort(usuarioId: number): Promise<{ id: number; nombre: string }[]> {
-        const response = await fetch(`${this.baseUrl}/proyectos/usuario/${usuarioId}`)
+    async listShort(userId: number): Promise<{ id: number; name: string }[]> {
+        const response = await fetch(`${this.baseUrl}/projects/user/${userId}`)
         if (!response.ok) {
             throw new Error('Failed to load short projects')
         }
         const data = await response.json()
-        return data.map((p: { id: number; nombre: string }) => ({ id: p.id, nombre: p.nombre }))
+        return data.map((p: { id: number; name: string }) => ({ id: p.id, name: p.name }))
     }
 
-    async create(usuarioId: number, nombre: string, descripcion: string): Promise<Project> {
-        const response = await fetch(`${this.baseUrl}/proyectos`, {
+    async create(userId: number, name: string, description: string): Promise<Project> {
+        const response = await fetch(`${this.baseUrl}/projects`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: usuarioId, nombre, descripcion })
+            body: JSON.stringify({ user_id: userId, name, description })
         })
         if (!response.ok) {
             const err = await response.json().catch(() => null)
@@ -54,11 +54,11 @@ export class ApiProjectRepository implements ProjectRepository {
         return this.mapProject(data)
     }
 
-    async update(id: number, nombre: string, descripcion: string): Promise<Project> {
-        const response = await fetch(`${this.baseUrl}/proyectos/${id}`, {
+    async update(id: number, name: string, description: string): Promise<Project> {
+        const response = await fetch(`${this.baseUrl}/projects/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, descripcion })
+            body: JSON.stringify({ name, description })
         })
         if (!response.ok) {
             const err = await response.json().catch(() => null)
@@ -69,7 +69,7 @@ export class ApiProjectRepository implements ProjectRepository {
     }
 
     async delete(id: number): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/proyectos/${id}`, { method: 'DELETE' })
+        const response = await fetch(`${this.baseUrl}/projects/${id}`, { method: 'DELETE' })
         if (!response.ok) {
             const err = await response.json().catch(() => null)
             throw new Error(err?.detail ?? 'Failed to delete project')

@@ -8,32 +8,32 @@ export class InMemoryProjectRepository implements ProjectRepository {
         this.projects = initial
     }
 
-    async list(usuarioId: number): Promise<Project[]> {
-        return this.projects.filter((p) => p.usuario_id === usuarioId)
+    async list(userId: number): Promise<Project[]> {
+        return this.projects.filter((p) => p.user_id === userId)
     }
 
-    async listShort(usuarioId: number): Promise<{ id: number; nombre: string }[]> {
+    async listShort(userId: number): Promise<{ id: number; name: string }[]> {
         return this.projects
-            .filter((p) => p.usuario_id === usuarioId)
-            .map((p) => ({ id: p.id, nombre: p.nombre }))
+            .filter((p) => p.user_id === userId)
+            .map((p) => ({ id: p.id, name: p.name }))
     }
 
-    async create(usuarioId: number, nombre: string, descripcion: string): Promise<Project> {
+    async create(userId: number, name: string, description: string): Promise<Project> {
         const newProject: Project = {
             id: this.projects.length ? Math.max(...this.projects.map((p) => p.id)) + 1 : 1,
-            usuario_id: usuarioId,
-            nombre,
-            descripcion
+            user_id: userId,
+            name,
+            description
         }
         this.projects.push(newProject)
         return newProject
     }
 
-    async update(id: number, nombre: string, descripcion: string): Promise<Project> {
+    async update(id: number, name: string, description: string): Promise<Project> {
         const project = this.projects.find((p) => p.id === id)
         if (!project) throw new Error('Project not found')
-        project.nombre = nombre
-        project.descripcion = descripcion
+        project.name = name
+        project.description = description
         return project
     }
 

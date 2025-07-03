@@ -18,8 +18,8 @@ import { useNotification } from '@renderer/shared/utils/useNotification'
 
 interface Project {
     id: number
-    nombre: string
-    descripcion: string
+    name: string
+    description: string
 }
 
 const service = new ProjectService(new ApiProjectRepository())
@@ -41,7 +41,7 @@ const Projects: React.FC = () => {
     const [searchQuery, setSearchQuery] = React.useState('')
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [editingProject, setEditingProject] = React.useState<Project | null>(null)
-    const [form, setForm] = React.useState({ nombre: '', descripcion: '' })
+    const [form, setForm] = React.useState({ name: '', description: '' })
     const notify = useNotification()
 
     React.useEffect(() => {
@@ -57,8 +57,8 @@ const Projects: React.FC = () => {
         setFilteredProjects(
             projects.filter(
                 (p) =>
-                    p.nombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (p.descripcion ?? '').toLowerCase().includes(searchQuery.toLowerCase())
+                    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (p.description ?? '').toLowerCase().includes(searchQuery.toLowerCase())
             )
         )
     }, [searchQuery, projects])
@@ -69,21 +69,21 @@ const Projects: React.FC = () => {
 
     const handleEdit = (project: Project): void => {
         setEditingProject(project)
-        setForm({ nombre: project.nombre, descripcion: project.descripcion })
+        setForm({ name: project.name, description: project.description })
         onOpen()
     }
 
     const handleCreate = (): void => {
         setEditingProject(null)
-        setForm({ nombre: '', descripcion: '' })
+        setForm({ name: '', description: '' })
         onOpen()
     }
 
     const handleSave = async (): Promise<void> => {
-        if (!form.nombre.trim() || !userId) return
+        if (!form.name.trim() || !userId) return
         if (editingProject) {
             try {
-                const updated = await service.update(editingProject.id, form.nombre, form.descripcion)
+                const updated = await service.update(editingProject.id, form.name, form.description)
                 setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
                 notify('Proyecto actualizado correctamente', 'success')
             } catch (e) {
@@ -92,7 +92,7 @@ const Projects: React.FC = () => {
             }
         } else {
             try {
-                const created = await service.create(userId, form.nombre, form.descripcion)
+                const created = await service.create(userId, form.name, form.description)
                 setProjects((prev) => [...prev, created])
                 notify('Proyecto creado correctamente', 'success')
             } catch (e) {
@@ -105,17 +105,17 @@ const Projects: React.FC = () => {
 
     const fields = [
         {
-            name: 'nombre',
-            label: 'Nombre',
-            value: form.nombre,
-            onChange: (value: string) => setForm((f) => ({ ...f, nombre: value })),
+            name: 'name',
+            label: 'Name',
+            value: form.name,
+            onChange: (value: string) => setForm((f) => ({ ...f, name: value })),
             required: true
         },
         {
-            name: 'descripcion',
-            label: 'Descripción',
-            value: form.descripcion,
-            onChange: (value: string) => setForm((f) => ({ ...f, descripcion: value })),
+            name: 'description',
+            label: 'Description',
+            value: form.description,
+            onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
             required: true
         },
     ]
@@ -138,15 +138,15 @@ const Projects: React.FC = () => {
             />
             <Table aria-label="Projects table" removeWrapper>
                 <TableHeader>
-                    <TableColumn>NOMBRE</TableColumn>
-                    <TableColumn>DESCRIPCIÓN</TableColumn>
-                    <TableColumn>ACCIONES</TableColumn>
+                    <TableColumn>NAME</TableColumn>
+                    <TableColumn>DESCRIPTION</TableColumn>
+                    <TableColumn>ACTIONS</TableColumn>
                 </TableHeader>
                 <TableBody>
                     {filteredProjects.map((project) => (
                         <TableRow key={project.id}>
-                            <TableCell>{project.nombre}</TableCell>
-                            <TableCell>{project.descripcion}</TableCell>
+                            <TableCell>{project.name}</TableCell>
+                            <TableCell>{project.description}</TableCell>
                             <TableCell>
                                 <div className="flex gap-2">
                                     <Button
