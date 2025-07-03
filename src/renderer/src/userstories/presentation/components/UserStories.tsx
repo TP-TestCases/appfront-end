@@ -58,15 +58,15 @@ const UserStories: React.FC = () => {
     project_id: '',
     epic_id: '',
     fakeId: '',
-    nombre: '',
-    rol: '',
-    descripcion: '',
-    criterios: '',
+    name: '',
+    role: '',
+    description: '',
+    criteria: '',
     dod: '',
-    prioridad: '',
-    puntos: 0,
-    dependencias: '',
-    resumen: ''
+    priority: '',
+    points: 0,
+    dependencies: '',
+    summary: ''
   })
   const [isImporting, setIsImporting] = React.useState(false)
 
@@ -86,9 +86,9 @@ const UserStories: React.FC = () => {
     setFilteredStories(
       stories.filter(
         (story) =>
-          story.nombre.toLowerCase().includes(query.toLowerCase()) ||
-          story.descripcion.toLowerCase().includes(query.toLowerCase()) ||
-          story.prioridad.toLowerCase().includes(query.toLowerCase())
+          story.name.toLowerCase().includes(query.toLowerCase()) ||
+          story.description.toLowerCase().includes(query.toLowerCase()) ||
+          story.priority.toLowerCase().includes(query.toLowerCase())
       )
     )
   }
@@ -99,15 +99,15 @@ const UserStories: React.FC = () => {
       project_id: prev.project_id,
       epic_id: prev.epic_id,
       fakeId: story.fakeId,
-      nombre: story.nombre,
-      rol: story.rol,
-      descripcion: story.descripcion,
-      criterios: story.criterios,
+      name: story.name,
+      role: story.role,
+      description: story.description,
+      criteria: story.criteria,
       dod: story.dod,
-      prioridad: story.prioridad,
-      puntos: story.puntos,
-      dependencias: story.dependencias,
-      resumen: story.resumen
+      priority: story.priority,
+      points: story.points,
+      dependencies: story.dependencies,
+      summary: story.summary
     }))
     onOpen()
   }
@@ -119,15 +119,15 @@ const UserStories: React.FC = () => {
       project_id: '',
       epic_id: '',
       fakeId: '',
-      nombre: '',
-      rol: '',
-      descripcion: '',
-      criterios: '',
+      name: '',
+      role: '',
+      description: '',
+      criteria: '',
       dod: '',
-      prioridad: '',
-      puntos: 0,
-      dependencias: '',
-      resumen: ''
+      priority: '',
+      points: 0,
+      dependencies: '',
+      summary: ''
     })
     onOpen()
   }
@@ -137,15 +137,15 @@ const UserStories: React.FC = () => {
       try {
         const updated = await userStoryService.update(
           editingStory.id,
-          form.nombre,
-          form.rol,
-          form.descripcion,
-          form.criterios,
+          form.name,
+          form.role,
+          form.description,
+          form.criteria,
           form.dod,
-          form.prioridad,
-          form.puntos,
-          form.dependencias,
-          form.resumen
+          form.priority,
+          form.points,
+          form.dependencies,
+          form.summary
         )
         setStories((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
         setFilteredStories((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
@@ -159,15 +159,15 @@ const UserStories: React.FC = () => {
         const created = await userStoryService.create(
           Number(form.epic_id),
           form.fakeId,
-          form.nombre,
-          form.rol,
-          form.descripcion,
-          form.criterios,
+          form.name,
+          form.role,
+          form.description,
+          form.criteria,
           form.dod,
-          form.prioridad,
-          form.puntos,
-          form.dependencias,
-          form.resumen
+          form.priority,
+          form.points,
+          form.dependencies,
+          form.summary
         )
         setStories((prev) => [...prev, created])
         setFilteredStories((prev) => [...prev, created])
@@ -210,7 +210,7 @@ const UserStories: React.FC = () => {
     try {
       console.log('Cargando proyectos para el usuario:', userId)
       const projects = await projectRepository.listShort(userId)
-      setProjectOptions(projects.map((p: { id: number; nombre: string }) => ({ id: p.id, name: p.nombre })))
+      setProjectOptions(projects.map((p: { id: number; name: string }) => ({ id: p.id, name: p.name })))
       if (projects.length > 0) {
         notify(`Se cargaron ${projects.length} proyectos`, 'success')
       } else {
@@ -227,10 +227,10 @@ const UserStories: React.FC = () => {
     setEpicLoading(true)
     try {
       const epics = await epicRepository.listShort(Number(form.project_id))
-      setEpicOptions(epics.map((e: { id: number; fake_id: string; nombre: string }) => ({
+      setEpicOptions(epics.map((e: { id: number; fake_id: string; name: string }) => ({
         id: e.id,
         second_id: e.fake_id,
-        name: e.nombre
+        name: e.name
       })))
       if (epics.length > 0) {
         notify(`Se cargaron ${epics.length} épicas`, 'success')
@@ -290,31 +290,31 @@ const UserStories: React.FC = () => {
       required: true
     },
     {
-      name: 'nombre',
-      label: 'Nombre',
-      value: form.nombre,
-      onChange: (value: string) => setForm((f) => ({ ...f, nombre: value })),
+      name: 'nombnamere',
+      label: 'Name',
+      value: form.name,
+      onChange: (value: string) => setForm((f) => ({ ...f, name: value })),
       required: true
     },
     {
-      name: 'rol',
-      label: 'Rol',
-      value: form.rol,
-      onChange: (value: string) => setForm((f) => ({ ...f, rol: value })),
+      name: 'role',
+      label: 'Role',
+      value: form.role,
+      onChange: (value: string) => setForm((f) => ({ ...f, role: value })),
       required: true
     },
     {
-      name: 'descripcion',
-      label: 'Descripción',
-      value: form.descripcion,
-      onChange: (value: string) => setForm((f) => ({ ...f, descripcion: value })),
+      name: 'description',
+      label: 'Description',
+      value: form.description,
+      onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
       required: true
     },
     {
-      name: 'criterios',
-      label: 'Criterios de Aceptación',
-      value: form.criterios,
-      onChange: (value: string) => setForm((f) => ({ ...f, criterios: value })),
+      name: 'criteria',
+      label: 'Acceptance Criteria',
+      value: form.criteria,
+      onChange: (value: string) => setForm((f) => ({ ...f, criteria: value })),
       required: true
     },
     {
@@ -325,32 +325,32 @@ const UserStories: React.FC = () => {
       required: true
     },
     {
-      name: 'prioridad',
-      label: 'Prioridad',
-      value: form.prioridad,
-      onChange: (value: string) => setForm((f) => ({ ...f, prioridad: value })),
+      name: 'priority',
+      label: 'Priority',
+      value: form.priority,
+      onChange: (value: string) => setForm((f) => ({ ...f, priority: value })),
       required: true
     },
     {
-      name: 'puntos',
-      label: 'Puntos de Historia',
-      value: String(form.puntos),
-      onChange: (value: string) => setForm((f) => ({ ...f, puntos: Number(value) })),
+      name: 'points',
+      label: 'Story Points',
+      value: String(form.points),
+      onChange: (value: string) => setForm((f) => ({ ...f, points: Number(value) })),
       type: 'number' as const,
       required: true
     },
     {
-      name: 'dependencias',
-      label: 'Dependencias',
-      value: form.dependencias,
-      onChange: (value: string) => setForm((f) => ({ ...f, dependencias: value })),
+      name: 'dependencies',
+      label: 'Dependencies',
+      value: form.dependencies,
+      onChange: (value: string) => setForm((f) => ({ ...f, dependencies: value })),
       required: true
     },
     {
-      name: 'resumen',
-      label: 'Resumen',
-      value: form.resumen,
-      onChange: (value: string) => setForm((f) => ({ ...f, resumen: value })),
+      name: 'summary',
+      label: 'Summary',
+      value: form.summary,
+      onChange: (value: string) => setForm((f) => ({ ...f, summary: value })),
       required: true
     },
   ]
@@ -380,16 +380,16 @@ const UserStories: React.FC = () => {
       <Table aria-label="User stories table" removeWrapper>
         <TableHeader>
           <TableColumn>ID</TableColumn>
-          <TableColumn>NOMBRE</TableColumn>
-          <TableColumn>PRIORIDAD</TableColumn>
+          <TableColumn>NAME</TableColumn>
+          <TableColumn>PRIORITY</TableColumn>
           <TableColumn>ACTIONS</TableColumn>
         </TableHeader>
         <TableBody>
           {filteredStories.map((story) => (
             <TableRow key={story.id}>
               <TableCell>{story.fakeId}</TableCell>
-              <TableCell>{story.nombre}</TableCell>
-              <TableCell>{story.prioridad}</TableCell>
+              <TableCell>{story.name}</TableCell>
+              <TableCell>{story.priority}</TableCell>
               <TableCell>
                 <Button size="sm" variant="light" onPress={() => handleEdit(story)}>
                   <Icon icon="lucide:edit" />

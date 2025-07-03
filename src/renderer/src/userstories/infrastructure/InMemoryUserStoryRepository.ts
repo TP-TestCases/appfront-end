@@ -9,17 +9,17 @@ export class InMemoryUserStoryRepository implements UserStoryRepository {
     }
 
     async listByUser(userId: number): Promise<UserStory[]> {
-        return this.stories.filter((s) => s.epicId === userId)
+        return this.stories.filter((s) => s.epic_id === userId)
     }
 
     async list(epicId: number): Promise<UserStory[]> {
-        return this.stories.filter((s) => s.epicId === epicId)
+        return this.stories.filter((s) => s.epic_id === epicId)
     }
 
     async listShort(epicId: number): Promise<{ id: number; second_id: string; name: string }[]> {
         return this.stories
-            .filter((s) => s.epicId === epicId)
-            .map((s) => ({ id: s.id, second_id: s.fakeId, name: s.nombre }))
+            .filter((s) => s.epic_id === epicId)
+            .map((s) => ({ id: s.id, second_id: s.fakeId, name: s.name }))
     }
 
     async get(id: number): Promise<UserStory> {
@@ -28,37 +28,37 @@ export class InMemoryUserStoryRepository implements UserStoryRepository {
         return story
     }
 
-    async create(epicId: number, fakeId: string, nombre: string, rol: string, descripcion: string, criterios: string, dod: string, prioridad: string, puntos: number, dependencias: string, resumen: string): Promise<UserStory> {
+    async create(epic_id: number, fakeId: string, name: string, role: string, description: string, criteria: string, dod: string, priority: string, points: number, dependencies: string, summary: string): Promise<UserStory> {
         const nextId = this.stories.length ? Math.max(...this.stories.map((s) => s.id)) + 1 : 1
         const newStory: UserStory = {
             id: nextId,
-            epicId,
+            epic_id,
             fakeId,
-            nombre,
-            rol,
-            descripcion,
-            criterios,
+            name,
+            role,
+            description,
+            criteria,
             dod,
-            prioridad,
-            puntos,
-            dependencias,
-            resumen
+            priority,
+            points,
+            dependencies,
+            summary
         }
         this.stories.push(newStory)
         return newStory
     }
 
-    async update(id: number, nombre: string, rol: string, descripcion: string, criterios: string, dod: string, prioridad: string, puntos: number, dependencias: string, resumen: string): Promise<UserStory> {
+    async update(id: number, name: string, role: string, description: string, criteria: string, dod: string, priority: string, points: number, dependencies: string, summary: string): Promise<UserStory> {
         const story = await this.get(id)
-        story.nombre = nombre
-        story.rol = rol
-        story.descripcion = descripcion
-        story.criterios = criterios
+        story.name = name
+        story.role = role
+        story.description = description
+        story.criteria = criteria
         story.dod = dod
-        story.prioridad = prioridad
-        story.puntos = puntos
-        story.dependencias = dependencias
-        story.resumen = resumen
+        story.priority = priority
+        story.points = points
+        story.dependencies = dependencies
+        story.summary = summary
         return story
     }
 

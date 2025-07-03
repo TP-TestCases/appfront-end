@@ -1,14 +1,14 @@
 export interface UserStory {
   id: number
   fakeId: string
-  nombre: string
-  rol: string
-  descripcion: string
-  criterios: string
+  name: string
+  role: string
+  description: string
+  criteria: string
   dod: string
-  prioridad: string
-  puntos: number
-  dependencias: string
-  resumen: string
-  epicId: number
+  priority: string
+  points: number
+  dependencies: string
+  summary: string
+  epic_id: number
 }

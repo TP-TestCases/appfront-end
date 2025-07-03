@@ -9,30 +9,30 @@ export class ApiUserStoryRepository implements UserStoryRepository {
     private mapStory(data: {
         id: number
         fake_id: string
-        nombre: string
-        rol: string
-        descripcion: string
-        criterios: string
+        name: string
+        role: string
+        description: string
+        criteria: string
         dod: string
-        prioridad: string
-        puntos: number
-        dependencias: string
-        resumen: string
+        priority: string
+        points: number
+        dependencies: string
+        summary: string
         epic_id: number
     }): UserStory {
         return {
             id: data.id,
             fakeId: data.fake_id,
-            nombre: data.nombre,
-            rol: data.rol,
-            descripcion: data.descripcion,
-            criterios: data.criterios,
+            name: data.name,
+            role: data.role,
+            description: data.description,
+            criteria: data.criteria,
             dod: data.dod,
-            prioridad: data.prioridad,
-            puntos: data.puntos,
-            dependencias: data.dependencias,
-            resumen: data.resumen,
-            epicId: data.epic_id
+            priority: data.priority,
+            points: data.points,
+            dependencies: data.dependencies,
+            summary: data.summary,
+            epic_id: data.epic_id
         }
     }
 
@@ -72,22 +72,22 @@ export class ApiUserStoryRepository implements UserStoryRepository {
         return this.mapStory(data)
     }
 
-    async create(epicId: number, fakeId: string, nombre: string, rol: string, descripcion: string, criterios: string, dod: string, prioridad: string, puntos: number, dependencias: string, resumen: string): Promise<UserStory> {
+    async create(epicId: number, fakeId: string, name: string, role: string, description: string, criteria: string, dod: string, priority: string, points: number, dependencies: string, summary: string): Promise<UserStory> {
         const response = await fetch(`${this.baseUrl}/userstories`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 epic_id: epicId,
                 fake_id: fakeId,
-                nombre,
-                rol,
-                descripcion,
-                criterios,
+                name,
+                role,
+                description,
+                criteria,
                 dod,
-                prioridad,
-                puntos,
-                dependencias,
-                resumen
+                priority,
+                points,
+                dependencies,
+                summary
             })
         })
         if (!response.ok) {
@@ -98,20 +98,20 @@ export class ApiUserStoryRepository implements UserStoryRepository {
         return this.mapStory(data)
     }
 
-    async update(id: number, nombre: string, rol: string, descripcion: string, criterios: string, dod: string, prioridad: string, puntos: number, dependencias: string, resumen: string): Promise<UserStory> {
+    async update(id: number, name: string, role: string, description: string, criteria: string, dod: string, priority: string, points: number, dependencies: string, summary: string): Promise<UserStory> {
         const response = await fetch(`${this.baseUrl}/userstories/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                nombre,
-                rol,
-                descripcion,
-                criterios,
+                name,
+                role,
+                description,
+                criteria,
                 dod,
-                prioridad,
-                puntos,
-                dependencias,
-                resumen
+                priority,
+                points,
+                dependencies,
+                summary
             })
         })
         if (!response.ok) {
