@@ -8,7 +8,8 @@ import {
     TableCell,
     Input,
     Button,
-    useDisclosure
+    useDisclosure,
+    Spinner
 } from '@nextui-org/react'
 import { Icon } from '@iconify/react'
 import EditCreateModal from '../../../shared/components/EditCreateModal'
@@ -38,19 +39,27 @@ const Epics: React.FC = () => {
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [editingEpic, setEditingEpic] = React.useState<Epic | null>(null)
     const [form, setForm] = React.useState({ project_id: '', fake_id: '', name: '', description: '' })
+    const [saving, setSaving] = React.useState(false)
     const userId = getUserId()
     const [projectOptions, setProjectOptions] = React.useState<{ id: number; name: string }[]>([])
     const [projectLoading, setProjectLoading] = React.useState(false)
     const notify = useNotification()
 
-    React.useEffect(() => {
+    const loadEpics = React.useCallback(async () => {
         if (!userId) return
-        epicService.listByUser(userId).then((data) => {
+        try {
+            const data = await epicService.listByUser(userId)
             setEpics(data)
             setFilteredEpics(data)
-        }).catch(console.error)
-    }, [userId])
+        } catch (error) {
+            console.error('Error loading epics:', error)
+            notify('Error al cargar épicas', 'error')
+        }
+    }, [userId, notify])
 
+    React.useEffect(() => {
+        loadEpics()
+    }, [loadEpics])
 
     React.useEffect(() => {
         setFilteredEpics(
@@ -76,7 +85,7 @@ const Epics: React.FC = () => {
     const handleEdit = (epic: Epic): void => {
         setEditingEpic(epic)
         setForm({
-            project_id: '',
+            project_id: String(epic.project_id),
             fake_id: epic.fake_id,
             name: epic.name,
             description: epic.description
@@ -85,22 +94,36 @@ const Epics: React.FC = () => {
     }
 
     const handleSave = async (): Promise<void> => {
-        if (!form.fake_id.trim() || !form.name.trim() || !form.project_id) return
-        if (editingEpic) {
-            try {
+        if (!form.name.trim()) {
+            notify('El nombre es requerido', 'error')
+            return
+        }
+        if (!form.description.trim()) {
+            notify('La descripción es requerida', 'error')
+            return
+        }
+        if (!editingEpic && !form.fake_id.trim()) {
+            notify('El ID de la épica es requerido', 'error')
+            return
+        }
+        if (!editingEpic && !form.project_id) {
+            notify('El proyecto es requerido', 'error')
+            return
+        }
+
+        setSaving(true)
+
+        try {
+            if (editingEpic) {
                 const updated = await epicService.update(
                     editingEpic.id,
                     form.name,
                     form.description
                 )
                 setEpics((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
+                setFilteredEpics((prev) => prev.map((e) => (e.id === updated.id ? updated : e)))
                 notify('Épica actualizada correctamente', 'success')
-            } catch (e) {
-                console.error(e)
-                notify('Error al actualizar la épica', 'error')
-            }
-        } else {
-            try {
+            } else {
                 const created = await epicService.create(
                     form.fake_id,
                     form.name,
@@ -108,20 +131,22 @@ const Epics: React.FC = () => {
                     Number(form.project_id)
                 )
                 setEpics((prev) => [...prev, created])
+                setFilteredEpics((prev) => [...prev, created])
                 notify('Épica creada correctamente', 'success')
-            } catch (e) {
-                console.error(e)
-                notify('Error al crear la épica', 'error')
             }
+            onClose()
+        } catch (error) {
+            console.error('Error saving epic:', error)
+            notify(`Error al ${editingEpic ? 'actualizar' : 'crear'} la épica: ${error instanceof Error ? error.message : 'Error desconocido'}`, 'error')
+        } finally {
+            setSaving(false)
         }
-        onClose()
     }
 
     const handleProjectSelectOpen = async (): Promise<void> => {
         if (!userId) return
         setProjectLoading(true)
         try {
-            console.log('Cargando proyectos para el usuario:', userId)
             const projects = await projectRepository.listShort(userId)
             setProjectOptions(projects.map((p: { id: number; name: string }) => ({
                 id: p.id,
@@ -132,10 +157,17 @@ const Epics: React.FC = () => {
             } else {
                 notify('No hay proyectos disponibles para este usuario', 'info')
             }
-        } catch {
+        } catch (error) {
+            console.error('Error loading projects:', error)
             notify('Error al cargar proyectos', 'error')
         }
         setProjectLoading(false)
+    }
+
+    const handleModalSave = (): void => {
+        if (!saving) {
+            handleSave()
+        }
     }
 
     const fields = [
@@ -151,18 +183,17 @@ const Epics: React.FC = () => {
                     value: String(p.id)
                 })),
                 required: true,
-                loading: projectLoading,
-                placeholder: 'Select a project',
+                onOpen: handleProjectSelectOpen,
+                placeholder: projectLoading ? 'Loading projects...' : 'Select a project',
+            }, {
+                name: 'fake_id',
+                label: 'Epic ID',
+                value: form.fake_id,
+                onChange: (value: string) => setForm((f) => ({ ...f, fake_id: value })),
+                required: true,
             }]
             : []
         ),
-        {
-            name: 'fake_id',
-            label: 'Epic ID',
-            value: form.fake_id,
-            onChange: (value: string) => setForm((f) => ({ ...f, fake_id: value })),
-            required: true
-        },
         {
             name: 'name',
             label: 'Name',
@@ -173,6 +204,7 @@ const Epics: React.FC = () => {
         {
             name: 'description',
             label: 'Description',
+            type: 'textarea' as const,
             value: form.description,
             onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
             required: true
@@ -220,10 +252,20 @@ const Epics: React.FC = () => {
             <EditCreateModal
                 isOpen={isOpen}
                 onClose={onClose}
-                onSave={handleSave}
+                onSave={handleModalSave}
                 title={editingEpic ? 'Edit Epic' : 'Create Epic'}
                 fields={fields}
+                saveLabel={saving ? 'Saving...' : 'Save'}
+                cancelLabel="Cancel"
             />
+            {projectLoading && (
+                <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg flex items-center gap-3">
+                        <Spinner size="md" />
+                        <span>Loading projects...</span>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

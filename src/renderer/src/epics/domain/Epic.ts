@@ -3,4 +3,5 @@ export interface Epic {
     fake_id: string
     name: string
     description: string
+    project_id: number
 }

@@ -1,9 +1,8 @@
 import { Epic } from "../domain/Epic"
 import { EpicRepository } from "../domain/EpicRepository"
-import { InMemoryEpicRepository } from "../infrastructure/InMemoryEpicRepository"
 
 export class EpicService {
-    constructor(private repository: EpicRepository = new InMemoryEpicRepository()) { }
+    constructor(private repository: EpicRepository) { }
 
     listByUser(userId: number): Promise<Epic[]> {
         return this.repository.listByUser(userId)
@@ -11,6 +10,14 @@ export class EpicService {
 
     list(project_id: number): Promise<Epic[]> {
         return this.repository.list(project_id)
+    }
+
+    listShort(project_id: number): Promise<{ id: number; fake_id: string; name: string }[]> {
+        return this.repository.listShort(project_id)
+    }
+
+    get(id: number): Promise<Epic> {
+        return this.repository.get(id)
     }
 
     create(fake_id: string, name: string, description: string, project_id: number): Promise<Epic> {

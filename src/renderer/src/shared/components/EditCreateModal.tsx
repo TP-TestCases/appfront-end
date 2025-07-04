@@ -9,7 +9,7 @@ interface Field {
     value: string
     onChange: (value: string) => void
     required?: boolean
-    type?: 'text' | 'select' | 'date' | 'number' | 'password'
+    type?: 'text' | 'select' | 'date' | 'number' | 'password' | 'textarea'
     options?: { label: string; value: string }[]
     onOpen?: () => void
     loading?: boolean
@@ -86,6 +86,33 @@ const EditCreateModal: React.FC<EditCreateModalProps> = ({
                                             </option>
                                         ))}
                                     </select>
+                                </div>
+                            ) : field.type === 'textarea' ? (
+                                <div key={field.name}>
+                                    <label
+                                        htmlFor={field.name}
+                                        className="block text-xs font-medium text-gray-600 mb-1"
+                                    >
+                                        {field.label}
+                                    </label>
+                                    <textarea
+                                        id={field.name}
+                                        value={field.value}
+                                        onChange={(e) => field.onChange(e.target.value)}
+                                        placeholder={field.placeholder}
+                                        required={field.required}
+                                        rows={3}
+                                        className="w-full bg-gray-50 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none overflow-hidden"
+                                        style={{
+                                            minHeight: '76px', // 3 rows minimum
+                                            height: 'auto'
+                                        }}
+                                        onInput={(e) => {
+                                            const target = e.target as HTMLTextAreaElement
+                                            target.style.height = 'auto'
+                                            target.style.height = `${target.scrollHeight}px`
+                                        }}
+                                    />
                                 </div>
                             ) : (
                                 <FormField
