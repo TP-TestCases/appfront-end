@@ -1,5 +1,6 @@
 import { Project } from '../domain/Project'
 import { ProjectRepository } from '../domain/ProjectRepository'
+import { PaginationResponse } from '../../shared/hooks/usePagination'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -38,6 +39,22 @@ export class ApiProjectRepository implements ProjectRepository {
         }
         const data = await response.json()
         return data.map((p: { id: number; name: string }) => ({ id: p.id, name: p.name }))
+    }
+
+    async listByUser(userId: number, page: number, size: number): Promise<PaginationResponse<Project>> {
+        const response = await fetch(`${this.baseUrl}/projects/user/${userId}?page=${page}&size=${size}`)
+        if (!response.ok) {
+            throw new Error('Failed to load projects')
+        }
+        const data = await response.json()
+        return {
+            items: data.items.map((p: { id: number; name: string; description: string; user_id: number }) =>
+                this.mapProject(p)
+            ),
+            total: data.total,
+            page: data.page,
+            pages: data.pages
+        }
     }
 
     async create(userId: number, name: string, description: string): Promise<Project> {

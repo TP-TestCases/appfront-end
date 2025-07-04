@@ -1,8 +1,10 @@
 import { Project } from "./Project"
+import { PaginationResponse } from "../../shared/hooks/usePagination"
 
 export interface ProjectRepository {
     list(userId: number): Promise<Project[]>
     listShort(userId: number): Promise<{ id: number; name: string }[]>
+    listByUser(userId: number, page: number, size: number): Promise<PaginationResponse<Project>>
     create(userId: number, name: string, description: string): Promise<Project>
     update(id: number, name: string, description: string): Promise<Project>
     delete(id: number): Promise<void>

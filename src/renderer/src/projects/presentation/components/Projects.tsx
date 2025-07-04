@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react';
 import {
     Table,
     TableHeader,
@@ -8,127 +8,157 @@ import {
     TableCell,
     Input,
     Button,
-    useDisclosure
-} from '@nextui-org/react'
-import { Icon } from '@iconify/react'
-import EditCreateModal from '../../../shared/components/EditCreateModal'
-import { ProjectService } from '@renderer/projects/application/ProjectService'
-import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository'
-import { useNotification } from '@renderer/shared/utils/useNotification'
+    useDisclosure,
+    Spinner,
+} from '@nextui-org/react';
+import { Icon } from '@iconify/react';
 
-interface Project {
-    id: number
-    name: string
-    description: string
-}
-
-const service = new ProjectService(new ApiProjectRepository())
+import { usePagination } from '../../../shared/hooks/usePagination';
+import EditCreateModal from '../../../shared/components/EditCreateModal';
+import Paginator from '../../../shared/components/Paginator';
+import { Project } from '@renderer/projects/domain/Project';
+import { ProjectService } from '@renderer/projects/application/ProjectService';
+import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository';
+import { useNotification } from '@renderer/shared/utils/useNotification';
 
 const getUserId = (): number | null => {
-    const user = localStorage.getItem('user')
-    if (!user) return null
+    const user = localStorage.getItem('user');
+    if (!user) return null;
     try {
-        return JSON.parse(user).id
+        return JSON.parse(user).id;
     } catch {
-        return null
+        return null;
     }
-}
+};
+
+const projectService = new ProjectService(new ApiProjectRepository());
 
 const Projects: React.FC = () => {
-    const userId = getUserId()
-    const [projects, setProjects] = React.useState<Project[]>([])
-    const [filteredProjects, setFilteredProjects] = React.useState<Project[]>([])
-    const [searchQuery, setSearchQuery] = React.useState('')
-    const { isOpen, onOpen, onClose } = useDisclosure()
-    const [editingProject, setEditingProject] = React.useState<Project | null>(null)
-    const [form, setForm] = React.useState({ name: '', description: '' })
-    const notify = useNotification()
+    const notify = useNotification();
+    const userId = getUserId();
 
-    React.useEffect(() => {
-        if (userId) {
-            service.list(userId).then((data) => {
-                setProjects(data)
-                setFilteredProjects(data)
-            })
-        }
-    }, [userId])
+    const fetchProjectsByUser = useCallback(
+        (page: number, size: number) => projectService.listByUser(userId!, page, size),
+        [userId]
+    );
 
-    React.useEffect(() => {
-        setFilteredProjects(
-            projects.filter(
-                (p) =>
-                    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    (p.description ?? '').toLowerCase().includes(searchQuery.toLowerCase())
-            )
-        )
-    }, [searchQuery, projects])
+    const {
+        items: projects,
+        loading,
+        error,
+        currentPage,
+        pageSize,
+        totalItems,
+        handlePageChange,
+        handlePageSizeChange,
+        refreshData,
+        refreshing,
+    } = usePagination<Project>({
+        apiFn: fetchProjectsByUser,
+        initialPage: 1,
+        initialSize: 10,
+    });
 
-    const handleSearch = (query: string): void => {
-        setSearchQuery(query)
-    }
+    const [searchQuery, setSearchQuery] = React.useState('');
+    const { isOpen, onOpen, onClose } = useDisclosure();
+    const [editingProject, setEditingProject] = React.useState<Project | null>(null);
+    const [form, setForm] = React.useState({ name: '', description: '' });
+    const [saving, setSaving] = React.useState(false);
 
-    const handleEdit = (project: Project): void => {
-        setEditingProject(project)
-        setForm({ name: project.name, description: project.description })
-        onOpen()
-    }
+    const filteredProjects = React.useMemo(() => {
+        if (!searchQuery.trim()) return projects;
+        return projects.filter((p) =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    }, [searchQuery, projects]);
 
+    const handleSearch = (value: string): void => {
+        setSearchQuery(value);
+    };
+
+    // Abrir modal para crear
     const handleCreate = (): void => {
-        setEditingProject(null)
-        setForm({ name: '', description: '' })
-        onOpen()
-    }
+        setEditingProject(null);
+        setForm({ name: '', description: '' });
+        onOpen();
+    };
+
+    // Abrir modal para editar
+    const handleEdit = (project: Project): void => {
+        setEditingProject(project);
+        setForm({
+            name: project.name,
+            description: project.description,
+        });
+        onOpen();
+    };
 
     const handleSave = async (): Promise<void> => {
-        if (!form.name.trim() || !userId) return
-        if (editingProject) {
-            try {
-                const updated = await service.update(editingProject.id, form.name, form.description)
-                setProjects((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
-                notify('Proyecto actualizado correctamente', 'success')
-            } catch (e) {
-                console.error(e)
-                notify('Error al actualizar el proyecto', 'error')
+        if (!form.name.trim()) return notify('El nombre es requerido', 'error');
+        if (!form.description.trim()) return notify('La descripción es requerida', 'error');
+
+        setSaving(true);
+        try {
+            if (editingProject) {
+                await projectService.update(editingProject.id, form.name, form.description);
+                await refreshData();
+                notify('Proyecto actualizado correctamente', 'success');
+            } else {
+                await projectService.create(userId!, form.name, form.description);
+                await refreshData();
+                notify('Proyecto creado correctamente', 'success');
             }
-        } else {
-            try {
-                const created = await service.create(userId, form.name, form.description)
-                setProjects((prev) => [...prev, created])
-                notify('Proyecto creado correctamente', 'success')
-            } catch (e) {
-                console.error(e)
-                notify('Error al crear el proyecto', 'error')
-            }
+            onClose();
+        } catch (err: unknown) {
+            console.error('Error saving project:', err);
+            const errorMessage = err instanceof Error ? err.message : 'desconocido';
+            notify(`Error al ${editingProject ? 'actualizar' : 'crear'} el proyecto: ${errorMessage}`, 'error');
+        } finally {
+            setSaving(false);
         }
-        onClose()
-    }
+    };
 
     const fields = [
         {
             name: 'name',
             label: 'Name',
             value: form.name,
-            onChange: (value: string) => setForm((f) => ({ ...f, name: value })),
-            required: true
+            onChange: (v: string) => setForm((f) => ({ ...f, name: v })),
+            required: true,
         },
         {
             name: 'description',
             label: 'Description',
+            type: 'textarea' as const,
             value: form.description,
-            onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
-            required: true
+            onChange: (v: string) => setForm((f) => ({ ...f, description: v })),
+            required: true,
         },
-    ]
+    ];
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Spinner size="lg" />
+            </div>
+        );
+    }
+    if (error) {
+        notify('Error al cargar proyectos', 'error');
+    }
 
     return (
         <div className="space-y-6">
+            {/* Header */}
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Projects</h1>
                 <Button color="primary" onPress={handleCreate}>
-                    <Icon icon="lucide:plus" className="mr-2" />
-                    Create Project
+                    <Icon icon="lucide:plus" className="mr-2" /> Create Project
                 </Button>
             </div>
+
+            {/* Search */}
             <Input
                 placeholder="Search projects..."
                 value={searchQuery}
@@ -136,43 +166,68 @@ const Projects: React.FC = () => {
                 startContent={<Icon icon="lucide:search" />}
                 className="max-w-xs"
             />
-            <Table aria-label="Projects table" removeWrapper>
-                <TableHeader>
-                    <TableColumn>NAME</TableColumn>
-                    <TableColumn>DESCRIPTION</TableColumn>
-                    <TableColumn>ACTIONS</TableColumn>
-                </TableHeader>
-                <TableBody>
-                    {filteredProjects.map((project) => (
-                        <TableRow key={project.id}>
-                            <TableCell>{project.name}</TableCell>
-                            <TableCell>{project.description}</TableCell>
-                            <TableCell>
-                                <div className="flex gap-2">
-                                    <Button
-                                        size="sm"
-                                        variant="light"
-                                        color="primary"
-                                        onPress={() => handleEdit(project)}
-                                        aria-label="Editar"
-                                    >
+
+            {/* Table */}
+            <div className="relative">
+                <Table aria-label="Projects table" removeWrapper>
+                    <TableHeader>
+                        <TableColumn>NAME</TableColumn>
+                        <TableColumn>DESCRIPTION</TableColumn>
+                        <TableColumn>ACTIONS</TableColumn>
+                    </TableHeader>
+                    <TableBody emptyContent="No projects found">
+                        {filteredProjects.map((project) => (
+                            <TableRow key={project.id}>
+                                <TableCell>{project.name}</TableCell>
+                                <TableCell>
+                                    <div className="max-w-xs truncate" title={project.description}>
+                                        {project.description}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <Button size="sm" variant="light" onPress={() => handleEdit(project)}>
                                         <Icon icon="lucide:edit" />
                                     </Button>
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+
+                {/* Table Loading Overlay */}
+                {refreshing && (
+                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                        <div className="flex items-center gap-2">
+                            <Spinner size="sm" />
+                            <span className="text-sm">Updating...</span>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Paginator */}
+            <Paginator
+                totalItems={totalItems}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                pageSizeOptions={[10, 15, 25, 50]}
+                showFirstLastButtons
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
+            />
+
+            {/* Modal */}
             <EditCreateModal
                 isOpen={isOpen}
                 onClose={onClose}
                 onSave={handleSave}
                 title={editingProject ? 'Edit Project' : 'Create Project'}
                 fields={fields}
+                saveLabel={saving ? 'Saving...' : 'Save'}
+                cancelLabel="Cancel"
             />
         </div>
-    )
-}
+    );
+};
 
-export default Projects
+export default Projects;

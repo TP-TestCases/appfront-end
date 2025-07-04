@@ -1,5 +1,6 @@
 import { Project } from "../domain/Project"
 import { ProjectRepository } from "../domain/ProjectRepository"
+import { PaginationResponse } from "../../shared/hooks/usePagination"
 
 export class InMemoryProjectRepository implements ProjectRepository {
     private projects: Project[]
@@ -16,6 +17,22 @@ export class InMemoryProjectRepository implements ProjectRepository {
         return this.projects
             .filter((p) => p.user_id === userId)
             .map((p) => ({ id: p.id, name: p.name }))
+    }
+
+    async listByUser(userId: number, page: number, size: number): Promise<PaginationResponse<Project>> {
+        const userProjects = this.projects.filter((p) => p.user_id === userId)
+        const total = userProjects.length
+        const startIndex = (page - 1) * size
+        const endIndex = startIndex + size
+        const items = userProjects.slice(startIndex, endIndex)
+        const pages = Math.ceil(total / size)
+
+        return {
+            items,
+            total,
+            page,
+            pages
+        }
     }
 
     async create(userId: number, name: string, description: string): Promise<Project> {
