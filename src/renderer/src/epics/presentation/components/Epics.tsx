@@ -53,6 +53,8 @@ const Epics: React.FC = () => {
         totalItems,
         handlePageChange,
         handlePageSizeChange,
+        refreshData,
+        refreshing,
     } = usePagination<Epic>({
         apiFn: fetchEpicsByUser,
         initialPage: 1,
@@ -80,14 +82,12 @@ const Epics: React.FC = () => {
         setSearchQuery(value);
     };
 
-    // Abrir modal para crear
     const handleCreate = (): void => {
         setEditingEpic(null);
         setForm({ project_id: '', fake_id: '', name: '', description: '' });
         onOpen();
     };
 
-    // Abrir modal para editar
     const handleEdit = (epic: Epic): void => {
         setEditingEpic(epic);
         setForm({
@@ -109,11 +109,11 @@ const Epics: React.FC = () => {
         try {
             if (editingEpic) {
                 await epicService.update(editingEpic.id, form.name, form.description);
-                handlePageChange(currentPage);
+                await refreshData(); // Refrescar datos sin cambiar página
                 notify('Épica actualizada correctamente', 'success');
             } else {
                 await epicService.create(form.fake_id, form.name, form.description, Number(form.project_id));
-                handlePageChange(1);
+                await refreshData(); // Refrescar datos sin cambiar página
                 notify('Épica creada correctamente', 'success');
             }
             onClose();
@@ -211,32 +211,44 @@ const Epics: React.FC = () => {
             />
 
             {/* Table */}
-            <Table aria-label="Epics table" removeWrapper>
-                <TableHeader>
-                    <TableColumn>EPIC ID</TableColumn>
-                    <TableColumn>NAME</TableColumn>
-                    <TableColumn>DESCRIPTION</TableColumn>
-                    <TableColumn>ACTIONS</TableColumn>
-                </TableHeader>
-                <TableBody emptyContent="No epics found">
-                    {filteredEpics.map((epic) => (
-                        <TableRow key={epic.id}>
-                            <TableCell>{epic.fake_id}</TableCell>
-                            <TableCell>{epic.name}</TableCell>
-                            <TableCell>
-                                <div className="max-w-xs truncate" title={epic.description}>
-                                    {epic.description}
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <Button size="sm" variant="light" onPress={() => handleEdit(epic)}>
-                                    <Icon icon="lucide:edit" />
-                                </Button>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+            <div className="relative">
+                <Table aria-label="Epics table" removeWrapper>
+                    <TableHeader>
+                        <TableColumn>EPIC ID</TableColumn>
+                        <TableColumn>NAME</TableColumn>
+                        <TableColumn>DESCRIPTION</TableColumn>
+                        <TableColumn>ACTIONS</TableColumn>
+                    </TableHeader>
+                    <TableBody emptyContent="No epics found">
+                        {filteredEpics.map((epic) => (
+                            <TableRow key={epic.id}>
+                                <TableCell>{epic.fake_id}</TableCell>
+                                <TableCell>{epic.name}</TableCell>
+                                <TableCell>
+                                    <div className="max-w-xs truncate" title={epic.description}>
+                                        {epic.description}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <Button size="sm" variant="light" onPress={() => handleEdit(epic)}>
+                                        <Icon icon="lucide:edit" />
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+
+                {/* Table Loading Overlay */}
+                {refreshing && (
+                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+                        <div className="flex items-center gap-2">
+                            <Spinner size="sm" />
+                            <span className="text-sm">Updating...</span>
+                        </div>
+                    </div>
+                )}
+            </div>
 
             {/* Paginator */}
             <Paginator

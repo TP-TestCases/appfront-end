@@ -27,6 +27,8 @@ export function usePagination<T>({
     totalItems: number;
     handlePageChange: (page: number) => void;
     handlePageSizeChange: (size: number) => void;
+    refreshData: () => Promise<void>;
+    refreshing: boolean;
 } {
     const [items, setItems] = useState<T[]>([]);
     const [currentPage, setCurrentPage] = useState(initialPage);
@@ -34,6 +36,7 @@ export function usePagination<T>({
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
     const [loading, setLoading] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
     const loadPage = useCallback(async (page: number, size: number) => {
@@ -65,6 +68,22 @@ export function usePagination<T>({
         setCurrentPage(1);
     };
 
+    const refreshData = async (): Promise<void> => {
+        setRefreshing(true);
+        setError(null);
+        try {
+            const res = await apiFn(currentPage, pageSize);
+            setItems(res.items);
+            setTotalItems(res.total);
+            setTotalPages(res.pages);
+            setCurrentPage(res.page);
+        } catch (err) {
+            setError(err as Error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
     return {
         items,
         loading,
@@ -75,5 +94,7 @@ export function usePagination<T>({
         totalItems,
         handlePageChange,
         handlePageSizeChange,
+        refreshData,
+        refreshing,
     };
 }
