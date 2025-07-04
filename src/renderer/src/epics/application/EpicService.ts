@@ -1,15 +1,23 @@
 import { Epic } from "../domain/Epic"
 import { EpicRepository } from "../domain/EpicRepository"
 
+interface PaginatedEpicResponse {
+    items: Epic[]
+    total: number
+    page: number
+    size: number
+    pages: number
+}
+
 export class EpicService {
     constructor(private repository: EpicRepository) { }
 
-    listByUser(userId: number): Promise<Epic[]> {
-        return this.repository.listByUser(userId)
+    listByUser(userId: number, page?: number, size?: number): Promise<PaginatedEpicResponse> {
+        return this.repository.listByUser(userId, page, size)
     }
 
-    list(project_id: number): Promise<Epic[]> {
-        return this.repository.list(project_id)
+    list(project_id: number, page?: number, size?: number): Promise<PaginatedEpicResponse> {
+        return this.repository.list(project_id, page, size)
     }
 
     listShort(project_id: number): Promise<{ id: number; fake_id: string; name: string }[]> {

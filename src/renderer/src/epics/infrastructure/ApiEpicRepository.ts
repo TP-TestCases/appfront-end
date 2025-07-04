@@ -11,6 +11,14 @@ interface ApiEpicResponse {
     project_id: number
 }
 
+interface PaginatedEpicResponse {
+    items: ApiEpicResponse[]
+    total: number
+    page: number
+    size: number
+    pages: number
+}
+
 export class ApiEpicRepository implements EpicRepository {
     constructor(private baseUrl: string = API_URL) { }
 
@@ -24,22 +32,28 @@ export class ApiEpicRepository implements EpicRepository {
         }
     }
 
-    async listByUser(userId: number): Promise<Epic[]> {
-        const response = await fetch(`${this.baseUrl}/epics/user/${userId}`)
+    async listByUser(userId: number, page: number = 1, size: number = 10): Promise<PaginatedEpicResponse> {
+        const response = await fetch(`${this.baseUrl}/epics/user/${userId}?page=${page}&size=${size}`)
         if (!response.ok) {
             throw new Error('Failed to load epics by user')
         }
-        const data: ApiEpicResponse[] = await response.json()
-        return data.map((e: ApiEpicResponse) => this.mapEpic(e))
+        const data: PaginatedEpicResponse = await response.json()
+        return {
+            ...data,
+            items: data.items.map((e: ApiEpicResponse) => this.mapEpic(e))
+        }
     }
 
-    async list(project_id: number): Promise<Epic[]> {
-        const response = await fetch(`${this.baseUrl}/epics/project/${project_id}`)
+    async list(project_id: number, page: number = 1, size: number = 10): Promise<PaginatedEpicResponse> {
+        const response = await fetch(`${this.baseUrl}/epics/project/${project_id}?page=${page}&size=${size}`)
         if (!response.ok) {
             throw new Error('Failed to load epics')
         }
-        const data: ApiEpicResponse[] = await response.json()
-        return data.map((e: ApiEpicResponse) => this.mapEpic(e))
+        const data: PaginatedEpicResponse = await response.json()
+        return {
+            ...data,
+            items: data.items.map((e: ApiEpicResponse) => this.mapEpic(e))
+        }
     }
 
     async listShort(project_id: number): Promise<{ id: number; fake_id: string; name: string }[]> {
