@@ -1,11 +1,16 @@
 import { UserStory } from "../domain/userStory"
 import { UserStoryRepository } from "../domain/UserStoryRepository"
+import { PaginationResponse } from "../../shared/hooks/usePagination"
 
 export class UserStoryService {
     constructor(private repository: UserStoryRepository) { }
 
     listByUser(userId: number): Promise<UserStory[]> {
         return this.repository.listByUser(userId)
+    }
+
+    listByUserPaginated(userId: number, page: number, size: number): Promise<PaginationResponse<UserStory>> {
+        return this.repository.listByUserPaginated(userId, page, size)
     }
 
     list(epicId: number): Promise<UserStory[]> {

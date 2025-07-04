@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react';
 import {
   Table,
   TableHeader,
@@ -8,52 +8,70 @@ import {
   TableCell,
   Input,
   Button,
-  useDisclosure
-} from '@nextui-org/react'
-import { Icon } from '@iconify/react'
-import EditCreateModal from '../../../shared/components/EditCreateModal'
-import { UserStoryService } from '@renderer/userstories/application/UserStoryService'
-import { UserStory } from '@renderer/userstories/domain/userStory'
-import { ApiUserStoryRepository } from '@renderer/userstories/infrastructure/ApiUserStoryRepository'
-import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository'
-import { useNotification } from '@renderer/shared/utils/useNotification'
-import { ApiEpicRepository } from '@renderer/epics/infrastructure/ApiEpicRepository'
-import ImportModal from './ImportModal'
+  useDisclosure,
+  Spinner,
+} from '@nextui-org/react';
+import { Icon } from '@iconify/react';
+
+import { usePagination } from '../../../shared/hooks/usePagination';
+import EditCreateModal from '../../../shared/components/EditCreateModal';
+import Paginator from '../../../shared/components/Paginator';
+import { UserStory } from '@renderer/userstories/domain/userStory';
+import { UserStoryService } from '@renderer/userstories/application/UserStoryService';
+import { ApiUserStoryRepository } from '@renderer/userstories/infrastructure/ApiUserStoryRepository';
+import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository';
+import { ApiEpicRepository } from '@renderer/epics/infrastructure/ApiEpicRepository';
+import { useNotification } from '@renderer/shared/utils/useNotification';
+import ImportModal from './ImportModal';
 
 const getUserId = (): number | null => {
-  const user = localStorage.getItem('user')
-  if (!user) return null
+  const user = localStorage.getItem('user');
+  if (!user) return null;
   try {
-    return JSON.parse(user).id
+    return JSON.parse(user).id;
   } catch {
-    return null
+    return null;
   }
-}
+};
 
-const userStoryService = new UserStoryService(new ApiUserStoryRepository())
-const projectRepository = new ApiProjectRepository()
-const epicRepository = new ApiEpicRepository()
+const userStoryService = new UserStoryService(new ApiUserStoryRepository());
+const projectRepository = new ApiProjectRepository();
+const epicRepository = new ApiEpicRepository();
 
 const UserStories: React.FC = () => {
-  const userId = getUserId()
-  const [projectOptions, setProjectOptions] = React.useState<{ id: number; name: string }[]>([])
-  const [projectLoading, setProjectLoading] = React.useState(false)
+  const notify = useNotification();
+  const userId = getUserId();
 
-  const [epicOptions, setEpicOptions] = React.useState<{ id: number; second_id: string; name: string }[]>([])
-  const [epicLoading, setEpicLoading] = React.useState(false)
+  const fetchUserStoriesByUser = useCallback(
+    (page: number, size: number) => userStoryService.listByUserPaginated(userId!, page, size),
+    [userId]
+  );
 
-  const notify = useNotification()
+  const {
+    items: stories,
+    loading,
+    error,
+    currentPage,
+    pageSize,
+    totalItems,
+    handlePageChange,
+    handlePageSizeChange,
+    refreshData,
+    refreshing,
+  } = usePagination<UserStory>({
+    apiFn: fetchUserStoriesByUser,
+    initialPage: 1,
+    initialSize: 10,
+  });
 
-  const [stories, setStories] = React.useState<UserStory[]>([])
-  const [filteredStories, setFilteredStories] = React.useState<UserStory[]>([])
-  const [searchQuery, setSearchQuery] = React.useState('')
-  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isImportOpen,
     onOpen: onImportOpen,
     onClose: onImportClose
-  } = useDisclosure()
-  const [editingStory, setEditingStory] = React.useState<UserStory | null>(null)
+  } = useDisclosure();
+  const [editingStory, setEditingStory] = React.useState<UserStory | null>(null);
   const [form, setForm] = React.useState({
     project_id: '',
     epic_id: '',
@@ -67,54 +85,32 @@ const UserStories: React.FC = () => {
     points: 0,
     dependencies: '',
     summary: ''
-  })
-  const [isImporting, setIsImporting] = React.useState(false)
+  });
+  const [saving, setSaving] = React.useState(false);
+  const [isImporting, setIsImporting] = React.useState(false);
+  const [projectOptions, setProjectOptions] = React.useState<{ id: number; name: string }[]>([]);
+  const [projectLoading, setProjectLoading] = React.useState(false);
+  const [epicOptions, setEpicOptions] = React.useState<{ id: number; second_id: string; name: string }[]>([]);
+  const [epicLoading, setEpicLoading] = React.useState(false);
 
-  React.useEffect(() => {
-    if (!userId) return
-    userStoryService
-      .listByUser(userId)
-      .then((data) => {
-        setStories(data)
-        setFilteredStories(data)
-      })
-      .catch(console.error)
-  }, [userId])
+  const filteredStories = React.useMemo(() => {
+    if (!searchQuery.trim()) return stories;
+    return stories.filter((story) =>
+      story.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      story.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      story.priority.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      story.fakeId.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery, stories]);
 
-  const handleSearch = (query: string): void => {
-    setSearchQuery(query)
-    setFilteredStories(
-      stories.filter(
-        (story) =>
-          story.name.toLowerCase().includes(query.toLowerCase()) ||
-          story.description.toLowerCase().includes(query.toLowerCase()) ||
-          story.priority.toLowerCase().includes(query.toLowerCase())
-      )
-    )
-  }
+  const handleSearch = (value: string): void => {
+    setSearchQuery(value);
+  };
 
-  const handleEdit = (story: UserStory): void => {
-    setEditingStory(story)
-    setForm((prev) => ({
-      project_id: prev.project_id,
-      epic_id: prev.epic_id,
-      fakeId: story.fakeId,
-      name: story.name,
-      role: story.role,
-      description: story.description,
-      criteria: story.criteria,
-      dod: story.dod,
-      priority: story.priority,
-      points: story.points,
-      dependencies: story.dependencies,
-      summary: story.summary
-    }))
-    onOpen()
-  }
-
+  // Abrir modal para crear
   const handleCreate = (): void => {
-    setEditingStory(null)
-    handleProjectSelectOpen()
+    setEditingStory(null);
+    handleProjectSelectOpen();
     setForm({
       project_id: '',
       epic_id: '',
@@ -128,14 +124,40 @@ const UserStories: React.FC = () => {
       points: 0,
       dependencies: '',
       summary: ''
-    })
-    onOpen()
-  }
+    });
+    onOpen();
+  };
+
+  // Abrir modal para editar
+  const handleEdit = (story: UserStory): void => {
+    setEditingStory(story);
+    setForm({
+      project_id: '',
+      epic_id: '',
+      fakeId: story.fakeId,
+      name: story.name,
+      role: story.role,
+      description: story.description,
+      criteria: story.criteria,
+      dod: story.dod,
+      priority: story.priority,
+      points: story.points,
+      dependencies: story.dependencies,
+      summary: story.summary
+    });
+    onOpen();
+  };
 
   const handleSave = async (): Promise<void> => {
-    if (editingStory) {
-      try {
-        const updated = await userStoryService.update(
+    if (!form.name.trim()) return notify('El nombre es requerido', 'error');
+    if (!form.role.trim()) return notify('El rol es requerido', 'error');
+    if (!form.description.trim()) return notify('La descripción es requerida', 'error');
+    if (!editingStory && !form.epic_id) return notify('La épica es requerida', 'error');
+
+    setSaving(true);
+    try {
+      if (editingStory) {
+        await userStoryService.update(
           editingStory.id,
           form.name,
           form.role,
@@ -146,17 +168,11 @@ const UserStories: React.FC = () => {
           form.points,
           form.dependencies,
           form.summary
-        )
-        setStories((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
-        setFilteredStories((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
-        notify('Historia de usuario actualizada correctamente', 'success')
-      } catch (e) {
-        console.error(e)
-        notify('Error al actualizar la historia de usuario', 'error')
-      }
-    } else {
-      try {
-        const created = await userStoryService.create(
+        );
+        await refreshData(); // Refrescar datos sin cambiar página
+        notify('Historia de usuario actualizada correctamente', 'success');
+      } else {
+        await userStoryService.create(
           Number(form.epic_id),
           form.fakeId,
           form.name,
@@ -168,80 +184,74 @@ const UserStories: React.FC = () => {
           form.points,
           form.dependencies,
           form.summary
-        )
-        setStories((prev) => [...prev, created])
-        setFilteredStories((prev) => [...prev, created])
-        notify('Historia de usuario creada correctamente', 'success')
-      } catch (e) {
-        console.error(e)
-        notify('Error al crear la historia de usuario', 'error')
+        );
+        await refreshData(); // Refrescar datos sin cambiar página
+        notify('Historia de usuario creada correctamente', 'success');
       }
+      onClose();
+    } catch (err: unknown) {
+      console.error('Error saving user story:', err);
+      const errorMessage = err instanceof Error ? err.message : 'desconocido';
+      notify(`Error al ${editingStory ? 'actualizar' : 'crear'} la historia de usuario: ${errorMessage}`, 'error');
+    } finally {
+      setSaving(false);
     }
-    onClose()
-  }
+  };
 
   const handleImport = (): void => {
-    handleProjectSelectOpen()
-    onImportOpen()
-  }
+    handleProjectSelectOpen();
+    onImportOpen();
+  };
 
   const handleImportConfirm = async (projectId: number, file: File): Promise<void> => {
-    if (!userId) return
+    if (!userId) return;
 
-    setIsImporting(true)
+    setIsImporting(true);
     try {
-      await userStoryService.importFromExcel(projectId, file)
-      const data = await userStoryService.listByUser(userId)
-      setStories(data)
-      setFilteredStories(data)
-      notify('Historias importadas correctamente', 'success')
-      onImportClose()
-    } catch (e) {
-      console.error(e)
-      notify('Error al importar historias', 'error')
+      await userStoryService.importFromExcel(projectId, file);
+      await refreshData(); // Refrescar datos después de importar
+      notify('Historias importadas correctamente', 'success');
+      onImportClose();
+    } catch (err: unknown) {
+      console.error('Error importing stories:', err);
+      const errorMessage = err instanceof Error ? err.message : 'desconocido';
+      notify(`Error al importar historias: ${errorMessage}`, 'error');
     } finally {
-      setIsImporting(false)
+      setIsImporting(false);
     }
-  }
+  };
 
   const handleProjectSelectOpen = async (): Promise<void> => {
-    if (!userId) return
-    setProjectLoading(true)
+    if (!userId) return;
+    setProjectLoading(true);
     try {
-      console.log('Cargando proyectos para el usuario:', userId)
-      const projects = await projectRepository.listShort(userId)
-      setProjectOptions(projects.map((p: { id: number; name: string }) => ({ id: p.id, name: p.name })))
-      if (projects.length > 0) {
-        notify(`Se cargaron ${projects.length} proyectos`, 'success')
-      } else {
-        notify('No hay proyectos disponibles para este usuario', 'info')
-      }
-    } catch {
-      notify('Error al cargar proyectos', 'error')
+      const projects = await projectRepository.listShort(userId);
+      setProjectOptions(projects.map((p: { id: number; name: string }) => ({ id: p.id, name: p.name })));
+    } catch (err) {
+      console.error('Error loading projects:', err);
+      notify('Error al cargar proyectos', 'error');
+    } finally {
+      setProjectLoading(false);
     }
-    setProjectLoading(false)
-  }
+  };
 
   const handleEpicSelectOpen = async (): Promise<void> => {
-    if (!form.project_id) return
-    setEpicLoading(true)
+    if (!form.project_id) return;
+    setEpicLoading(true);
     try {
-      const epics = await epicRepository.listShort(Number(form.project_id))
+      const epics = await epicRepository.listShort(Number(form.project_id));
       setEpicOptions(epics.map((e: { id: number; fake_id: string; name: string }) => ({
         id: e.id,
         second_id: e.fake_id,
         name: e.name
-      })))
-      if (epics.length > 0) {
-        notify(`Se cargaron ${epics.length} épicas`, 'success')
-      } else {
-        notify('No hay épicas disponibles para este proyecto', 'info')
-      }
-    } catch {
-      notify('Error al cargar épicas', 'error')
+      })));
+    } catch (err) {
+      console.error('Error loading epics:', err);
+      notify('Error al cargar épicas', 'error');
+    } finally {
+      setEpicLoading(false);
     }
-    setEpicLoading(false)
-  }
+  };
 
   const fields = [
     ...(!editingStory
@@ -251,18 +261,19 @@ const UserStories: React.FC = () => {
           label: 'Proyecto',
           type: 'select' as const,
           value: form.project_id,
-          onOpen: handleEpicSelectOpen,
           onChange: (value: string) => {
-            setForm((f) => ({ ...f, project_id: value, epic_id: '' }))
-            setEpicOptions([])
+            setForm((f) => ({ ...f, project_id: value, epic_id: '' }));
+            setEpicOptions([]);
+            if (value) {
+              handleEpicSelectOpen();
+            }
           },
           options: projectOptions.map((p) => ({
             label: p.name,
             value: String(p.id)
           })),
           required: true,
-          loading: projectLoading,
-          placeholder: 'Selecciona un proyecto'
+          placeholder: projectLoading ? 'Cargando proyectos...' : 'Selecciona un proyecto'
         },
         {
           name: 'epic_id',
@@ -271,13 +282,12 @@ const UserStories: React.FC = () => {
           value: form.epic_id,
           onChange: (value: string) => setForm((f) => ({ ...f, epic_id: value })),
           options: epicOptions.map((e) => ({
-            label: e.second_id,
+            label: `${e.second_id} - ${e.name}`,
             value: String(e.id)
           })),
           required: true,
-          loading: epicLoading,
-          placeholder: 'Selecciona una épica',
-          disabled: !form.project_id // Deshabilitar si no hay proyecto seleccionado
+          placeholder: epicLoading ? 'Cargando épicas...' : 'Selecciona una épica',
+          disabled: !form.project_id
         }
       ]
       : []
@@ -290,7 +300,7 @@ const UserStories: React.FC = () => {
       required: true
     },
     {
-      name: 'nombnamere',
+      name: 'name',
       label: 'Name',
       value: form.name,
       onChange: (value: string) => setForm((f) => ({ ...f, name: value })),
@@ -306,6 +316,7 @@ const UserStories: React.FC = () => {
     {
       name: 'description',
       label: 'Description',
+      type: 'textarea' as const,
       value: form.description,
       onChange: (value: string) => setForm((f) => ({ ...f, description: value })),
       required: true
@@ -313,13 +324,15 @@ const UserStories: React.FC = () => {
     {
       name: 'criteria',
       label: 'Acceptance Criteria',
+      type: 'textarea' as const,
       value: form.criteria,
       onChange: (value: string) => setForm((f) => ({ ...f, criteria: value })),
       required: true
     },
     {
       name: 'dod',
-      label: 'DoD',
+      label: 'Definition of Done',
+      type: 'textarea' as const,
       value: form.dod,
       onChange: (value: string) => setForm((f) => ({ ...f, dod: value })),
       required: true
@@ -327,36 +340,56 @@ const UserStories: React.FC = () => {
     {
       name: 'priority',
       label: 'Priority',
+      type: 'select' as const,
       value: form.priority,
       onChange: (value: string) => setForm((f) => ({ ...f, priority: value })),
+      options: [
+        { label: 'High', value: 'High' },
+        { label: 'Medium', value: 'Medium' },
+        { label: 'Low', value: 'Low' }
+      ],
       required: true
     },
     {
       name: 'points',
       label: 'Story Points',
-      value: String(form.points),
-      onChange: (value: string) => setForm((f) => ({ ...f, points: Number(value) })),
       type: 'number' as const,
+      value: String(form.points),
+      onChange: (value: string) => setForm((f) => ({ ...f, points: Number(value) || 0 })),
       required: true
     },
     {
       name: 'dependencies',
       label: 'Dependencies',
+      type: 'textarea' as const,
       value: form.dependencies,
       onChange: (value: string) => setForm((f) => ({ ...f, dependencies: value })),
-      required: true
+      required: false
     },
     {
       name: 'summary',
       label: 'Summary',
+      type: 'textarea' as const,
       value: form.summary,
       onChange: (value: string) => setForm((f) => ({ ...f, summary: value })),
       required: true
-    },
-  ]
+    }
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+  if (error) {
+    notify('Error al cargar historias de usuario', 'error');
+  }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">User Stories</h1>
         <div className="space-x-2">
@@ -370,6 +403,8 @@ const UserStories: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Search */}
       <Input
         placeholder="Search stories..."
         value={searchQuery}
@@ -377,36 +412,85 @@ const UserStories: React.FC = () => {
         startContent={<Icon icon="lucide:search" />}
         className="max-w-xs"
       />
-      <Table aria-label="User stories table" removeWrapper>
-        <TableHeader>
-          <TableColumn>ID</TableColumn>
-          <TableColumn>NAME</TableColumn>
-          <TableColumn>PRIORITY</TableColumn>
-          <TableColumn>ACTIONS</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {filteredStories.map((story) => (
-            <TableRow key={story.id}>
-              <TableCell>{story.fakeId}</TableCell>
-              <TableCell>{story.name}</TableCell>
-              <TableCell>{story.priority}</TableCell>
-              <TableCell>
-                <Button size="sm" variant="light" onPress={() => handleEdit(story)}>
-                  <Icon icon="lucide:edit" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+
+      {/* Table */}
+      <div className="relative">
+        <Table aria-label="User stories table" removeWrapper>
+          <TableHeader>
+            <TableColumn>STORY ID</TableColumn>
+            <TableColumn>NAME</TableColumn>
+            <TableColumn>ROLE</TableColumn>
+            <TableColumn>PRIORITY</TableColumn>
+            <TableColumn>POINTS</TableColumn>
+            <TableColumn>ACTIONS</TableColumn>
+          </TableHeader>
+          <TableBody emptyContent="No user stories found">
+            {filteredStories.map((story) => (
+              <TableRow key={story.id}>
+                <TableCell>{story.fakeId}</TableCell>
+                <TableCell>
+                  <div className="max-w-xs truncate" title={story.name}>
+                    {story.name}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="max-w-xs truncate" title={story.role}>
+                    {story.role}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className={`px-2 py-1 rounded text-xs ${story.priority === 'High' ? 'bg-red-100 text-red-800' :
+                    story.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                    {story.priority}
+                  </span>
+                </TableCell>
+                <TableCell>{story.points}</TableCell>
+                <TableCell>
+                  <Button size="sm" variant="light" onPress={() => handleEdit(story)}>
+                    <Icon icon="lucide:edit" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        {/* Table Loading Overlay */}
+        {refreshing && (
+          <div className="absolute inset-0 bg-white/80 flex items-center justify-center">
+            <div className="flex items-center gap-2">
+              <Spinner size="sm" />
+              <span className="text-sm">Updating...</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Paginator */}
+      <Paginator
+        totalItems={totalItems}
+        currentPage={currentPage}
+        pageSize={pageSize}
+        pageSizeOptions={[10, 15, 25, 50]}
+        showFirstLastButtons
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+      />
+
+      {/* Modal */}
       <EditCreateModal
         isOpen={isOpen}
         onClose={onClose}
         onSave={handleSave}
-        title={editingStory ? 'Edit Story' : 'Create Story'}
+        title={editingStory ? 'Edit User Story' : 'Create User Story'}
         fields={fields}
+        saveLabel={saving ? 'Saving...' : 'Save'}
+        cancelLabel="Cancel"
       />
 
+      {/* Import Modal */}
       <ImportModal
         isOpen={isImportOpen}
         onClose={onImportClose}
@@ -417,7 +501,7 @@ const UserStories: React.FC = () => {
         onProjectSelectOpen={handleProjectSelectOpen}
       />
     </div>
-  )
-}
+  );
+};
 
-export default UserStories
+export default UserStories;

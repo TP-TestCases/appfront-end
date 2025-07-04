@@ -1,5 +1,6 @@
 import { UserStory } from '../domain/userStory'
 import { UserStoryRepository } from '../domain/UserStoryRepository'
+import { PaginationResponse } from '../../shared/hooks/usePagination'
 
 const API_URL = import.meta.env.VITE_API_URL
 
@@ -43,6 +44,20 @@ export class ApiUserStoryRepository implements UserStoryRepository {
         }
         const data = await response.json()
         return data.map((s: Parameters<ApiUserStoryRepository['mapStory']>[0]) => this.mapStory(s))
+    }
+
+    async listByUserPaginated(userId: number, page: number, size: number): Promise<PaginationResponse<UserStory>> {
+        const response = await fetch(`${this.baseUrl}/userstories/user/${userId}?page=${page}&size=${size}`)
+        if (!response.ok) {
+            throw new Error('Failed to load user stories by user')
+        }
+        const data = await response.json()
+        return {
+            items: data.items.map((s: Parameters<ApiUserStoryRepository['mapStory']>[0]) => this.mapStory(s)),
+            total: data.total,
+            page: data.page,
+            pages: data.pages
+        }
     }
 
     async list(epicId: number): Promise<UserStory[]> {

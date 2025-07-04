@@ -1,5 +1,6 @@
 import { UserStory } from "../domain/userStory";
 import { UserStoryRepository } from "../domain/UserStoryRepository";
+import { PaginationResponse } from "../../shared/hooks/usePagination";
 
 export class InMemoryUserStoryRepository implements UserStoryRepository {
     private stories: UserStory[]
@@ -10,6 +11,22 @@ export class InMemoryUserStoryRepository implements UserStoryRepository {
 
     async listByUser(userId: number): Promise<UserStory[]> {
         return this.stories.filter((s) => s.epic_id === userId)
+    }
+
+    async listByUserPaginated(userId: number, page: number, size: number): Promise<PaginationResponse<UserStory>> {
+        const userStories = this.stories.filter((s) => s.epic_id === userId);
+        const total = userStories.length;
+        const startIndex = (page - 1) * size;
+        const endIndex = startIndex + size;
+        const items = userStories.slice(startIndex, endIndex);
+        const pages = Math.ceil(total / size);
+
+        return {
+            items,
+            total,
+            page,
+            pages
+        };
     }
 
     async list(epicId: number): Promise<UserStory[]> {
