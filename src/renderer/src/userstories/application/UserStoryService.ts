@@ -13,6 +13,10 @@ export class UserStoryService {
         return this.repository.listByUserPaginated(userId, page, size)
     }
 
+    listSimpleByUser(userId: number): Promise<{ id: number; fake_id: string }[]> {
+        return this.repository.listSimpleByUser(userId)
+    }
+
     list(epicId: number): Promise<UserStory[]> {
         return this.repository.list(epicId)
     }

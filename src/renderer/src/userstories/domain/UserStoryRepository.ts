@@ -4,6 +4,7 @@ import { PaginationResponse } from "../../shared/hooks/usePagination"
 export interface UserStoryRepository {
     listByUser(userId: number): Promise<UserStory[]>
     listByUserPaginated(userId: number, page: number, size: number): Promise<PaginationResponse<UserStory>>
+    listSimpleByUser(userId: number): Promise<{ id: number; fake_id: string }[]>
     list(epicId: number): Promise<UserStory[]>
     listShort(epicId: number): Promise<{ id: number; second_id: string; name: string }[]>
     get(id: number): Promise<UserStory>

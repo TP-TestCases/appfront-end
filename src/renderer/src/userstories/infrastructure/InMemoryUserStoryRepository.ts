@@ -29,6 +29,12 @@ export class InMemoryUserStoryRepository implements UserStoryRepository {
         };
     }
 
+    async listSimpleByUser(userId: number): Promise<{ id: number; fake_id: string }[]> {
+        return this.stories
+            .filter((s) => s.epic_id === userId)
+            .map((s) => ({ id: s.id, fake_id: s.fakeId }));
+    }
+
     async list(epicId: number): Promise<UserStory[]> {
         return this.stories.filter((s) => s.epic_id === epicId)
     }

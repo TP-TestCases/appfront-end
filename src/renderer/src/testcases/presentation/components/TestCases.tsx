@@ -31,7 +31,7 @@ const TestCases: React.FC = () => {
 
     const [scenarios, setScenarios] = React.useState<TestScenario[]>([])
     const [testCases, setTestCases] = React.useState<TestCase[]>([])
-    const [userStories, setUserStories] = React.useState<{ id: number; fake_id: string; nombre: string }[]>([])
+    const [userStories, setUserStories] = React.useState<{ id: number; fake_id: string }[]>([])
     const [userStoryLoading, setUserStoryLoading] = React.useState(false)
     const [isGenerating, setIsGenerating] = React.useState(false)
     const [selectedUserStory, setSelectedUserStory] = React.useState<number | null>(null)
@@ -41,12 +41,8 @@ const TestCases: React.FC = () => {
         if (!userId) return
         setUserStoryLoading(true)
         try {
-            const stories = await userStoryService.listByUser(userId)
-            setUserStories(stories.map(s => ({
-                id: s.id!,
-                fake_id: s.fakeId,
-                nombre: s.nombre
-            })))
+            const stories = await userStoryService.listSimpleByUser(userId)
+            setUserStories(stories)
         } catch (error) {
             console.error('Error loading user stories:', error)
             notify('Error al cargar historias de usuario', 'error')
@@ -182,7 +178,7 @@ const TestCases: React.FC = () => {
                         </option>
                         {userStories && userStories.map((story) => (
                             <option key={story.id} value={story.id}>
-                                {story.fake_id} - {story.nombre}
+                                {story.fake_id}
                             </option>
                         ))}
                     </select>

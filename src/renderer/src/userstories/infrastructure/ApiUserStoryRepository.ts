@@ -60,6 +60,14 @@ export class ApiUserStoryRepository implements UserStoryRepository {
         }
     }
 
+    async listSimpleByUser(userId: number): Promise<{ id: number; fake_id: string }[]> {
+        const response = await fetch(`${this.baseUrl}/userstories/user/${userId}/simple`)
+        if (!response.ok) {
+            throw new Error('Failed to load simple user stories by user')
+        }
+        return await response.json()
+    }
+
     async list(epicId: number): Promise<UserStory[]> {
         const response = await fetch(`${this.baseUrl}/userstories/epic/${epicId}`)
         if (!response.ok) {

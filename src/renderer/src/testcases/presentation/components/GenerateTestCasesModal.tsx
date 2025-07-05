@@ -8,7 +8,7 @@ interface GenerateTestCasesModalProps {
   onClose: () => void
   onGenerate: (userStoryId: number, promptExtra: string, dbFile: File) => Promise<void>
   loading?: boolean
-  userStories: { id: number; fake_id: string; nombre: string }[]
+  userStories: { id: number; fake_id: string }[]
   userStoryLoading: boolean
 }
 
@@ -133,7 +133,7 @@ const GenerateTestCasesModal: React.FC<GenerateTestCasesModalProps> = ({
                 </option>
                 {userStories.map((story) => (
                   <option key={story.id} value={String(story.id)}>
-                    {story.fake_id} - {story.nombre}
+                    {story.fake_id}
                   </option>
                 ))}
               </select>
