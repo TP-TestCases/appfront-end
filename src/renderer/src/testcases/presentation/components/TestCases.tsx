@@ -229,32 +229,32 @@ const TestCases: React.FC = () => {
                                 <div className="p-6">
                                     <div className="space-y-4">
                                         {getTestCasesByScenario(scenario.id!).map((testCase) => {
-                                            const typeInfo = getTypeIcon(testCase.tipo)
+                                            const typeInfo = getTypeIcon(testCase.type)
                                             return (
                                                 <div key={testCase.id} className="border border-gray-200 rounded-lg p-4">
                                                     <div className="flex items-center gap-2 mb-3">
                                                         <Icon icon={typeInfo.icon} className={`h-5 w-5 ${typeInfo.color}`} />
                                                         <span className="font-medium text-gray-800">{testCase.fake_id}</span>
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${testCase.tipo === 'happy' ? 'bg-green-100 text-green-800' :
-                                                                testCase.tipo === 'error' ? 'bg-red-100 text-red-800' :
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${testCase.type === 'happy' ? 'bg-green-100 text-green-800' :
+                                                                testCase.type === 'error' ? 'bg-red-100 text-red-800' :
                                                                     'bg-yellow-100 text-yellow-800'
                                                             }`}>
-                                                            {getTypeLabel(testCase.tipo)}
+                                                            {getTypeLabel(testCase.type)}
                                                         </span>
                                                     </div>
 
                                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                                                         <div>
                                                             <h4 className="font-medium text-gray-700 mb-1">Datos de Entrada</h4>
-                                                            <p className="text-gray-600">{testCase.datos_entrada}</p>
+                                                            <p className="text-gray-600">{testCase.input_data}</p>
                                                         </div>
                                                         <div>
                                                             <h4 className="font-medium text-gray-700 mb-1">Pasos</h4>
-                                                            <p className="text-gray-600">{testCase.pasos}</p>
+                                                            <p className="text-gray-600">{testCase.steps}</p>
                                                         </div>
                                                         <div>
                                                             <h4 className="font-medium text-gray-700 mb-1">Resultado Esperado</h4>
-                                                            <p className="text-gray-600">{testCase.resultado_esperado}</p>
+                                                            <p className="text-gray-600">{testCase.expected_result}</p>
                                                         </div>
                                                     </div>
                                                 </div>

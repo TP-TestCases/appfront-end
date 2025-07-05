@@ -68,12 +68,12 @@ export class ApiTestCaseRepository implements TestCaseRepository {
         return data.map((tc) => ({
             id: tc.id!,
             fake_id: tc.fake_id ?? '',
-            tipo: tc.tipo ?? 'happy',
-            datos_entrada: tc.datos_entrada ?? '',
-            pasos: tc.pasos ?? '',
-            resultado_esperado: tc.resultado_esperado ?? '',
-            resultado_real: tc.resultado_real ?? '',
-            estado: tc.estado ?? '',
+            type: tc.type ?? 'happy',
+            input_data: tc.input_data ?? '',
+            steps: tc.steps ?? '',
+            expected_result: tc.expected_result ?? '',
+            actual_result: tc.actual_result ?? '',
+            status: tc.status ?? '',
             test_scenario_id: testScenarioId
         }))
     }
