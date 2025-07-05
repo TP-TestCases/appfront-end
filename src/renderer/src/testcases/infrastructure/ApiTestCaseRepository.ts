@@ -17,7 +17,7 @@ export class ApiTestCaseRepository implements TestCaseRepository {
         formData.append('prompt_extra', promptExtra)
         formData.append('archivo_db', dbFile)
 
-        const response = await fetch(`${this.baseUrl}/generar-testcases/`, {
+        const response = await fetch(`${this.baseUrl}/generate_test_cases/`, {
             method: 'POST',
             body: formData
         })
