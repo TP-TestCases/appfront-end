@@ -1,11 +1,14 @@
 import { TestCaseRepository } from '../domain/TestCaseRepository'
 import { TestCase } from '../domain/testCases';
 import { TestScenario } from '../domain/testScenario';
-
-const API_URL = import.meta.env.VITE_API_URL
+import { HttpService } from '../../shared/services/HttpService';
 
 export class ApiTestCaseRepository implements TestCaseRepository {
-    constructor(private baseUrl: string = API_URL) { }
+    private httpService: HttpService
+
+    constructor() { 
+        this.httpService = HttpService.getInstance()
+    }
 
     async generateTestCases(
         userStoryId: number,
@@ -15,12 +18,9 @@ export class ApiTestCaseRepository implements TestCaseRepository {
         const formData = new FormData()
         formData.append('user_story_id', String(userStoryId))
         formData.append('prompt_extra', promptExtra)
-        formData.append('archivo_db', dbFile)
+        formData.append('db_file', dbFile)
 
-        const response = await fetch(`${this.baseUrl}/generate_test_cases/`, {
-            method: 'POST',
-            body: formData
-        })
+        const response = await this.httpService.postFormData('/generate-testcases/', formData)
 
         if (!response.ok) {
             const error = await response.json().catch(() => null)
@@ -34,7 +34,7 @@ export class ApiTestCaseRepository implements TestCaseRepository {
         scenarios: TestScenario[]
         testCases: TestCase[]
     }> {
-        const scenariosResponse = await fetch(`${this.baseUrl}/test_scenarios/by-user-story/${userStoryId}`)
+        const scenariosResponse = await this.httpService.get(`/test_scenarios/by-user-story/${userStoryId}`)
         if (!scenariosResponse.ok) {
             throw new Error('Error al cargar escenarios de test')
         }
@@ -60,7 +60,7 @@ export class ApiTestCaseRepository implements TestCaseRepository {
     }
 
     async listByScenario(testScenarioId: number): Promise<TestCase[]> {
-        const response = await fetch(`${this.baseUrl}/test_cases/by-scenario/${testScenarioId}`)
+        const response = await this.httpService.get(`/test_cases/by-scenario/${testScenarioId}`)
         if (!response.ok) {
             throw new Error('Error al cargar test cases del escenario')
         }

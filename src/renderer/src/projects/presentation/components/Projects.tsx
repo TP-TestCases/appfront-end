@@ -20,16 +20,7 @@ import { Project } from '@renderer/projects/domain/Project';
 import { ProjectService } from '@renderer/projects/application/ProjectService';
 import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository';
 import { useNotification } from '@renderer/shared/utils/useNotification';
-
-const getUserId = (): number | null => {
-    const user = localStorage.getItem('user');
-    if (!user) return null;
-    try {
-        return JSON.parse(user).id;
-    } catch {
-        return null;
-    }
-};
+import { getUserId } from '@renderer/shared/utils/authUtils';
 
 const projectService = new ProjectService(new ApiProjectRepository());
 
@@ -38,7 +29,12 @@ const Projects: React.FC = () => {
     const userId = getUserId();
 
     const fetchProjectsByUser = useCallback(
-        (page: number, size: number) => projectService.listByUser(userId!, page, size),
+        (page: number, size: number) => {
+            if (!userId) {
+                return Promise.reject(new Error('Usuario no autenticado'));
+            }
+            return projectService.listByUser(userId, page, size);
+        },
         [userId]
     );
 
@@ -97,6 +93,7 @@ const Projects: React.FC = () => {
     const handleSave = async (): Promise<void> => {
         if (!form.name.trim()) return notify('El nombre es requerido', 'error');
         if (!form.description.trim()) return notify('La descripción es requerida', 'error');
+        if (!userId) return notify('Usuario no autenticado', 'error');
 
         setSaving(true);
         try {
@@ -105,7 +102,7 @@ const Projects: React.FC = () => {
                 await refreshData();
                 notify('Proyecto actualizado correctamente', 'success');
             } else {
-                await projectService.create(userId!, form.name, form.description);
+                await projectService.create(userId, form.name, form.description);
                 await refreshData();
                 notify('Proyecto creado correctamente', 'success');
             }
@@ -137,15 +134,30 @@ const Projects: React.FC = () => {
         },
     ];
 
+    // Manejar error en useEffect para evitar problemas de renderizado
+    React.useEffect(() => {
+        if (error) {
+            notify('Error al cargar proyectos', 'error');
+        }
+    }, [error, notify]);
+
+    if (!userId) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <p className="text-lg">Usuario no autenticado</p>
+                    <p className="text-sm text-gray-500">Por favor, inicia sesión para continuar</p>
+                </div>
+            </div>
+        );
+    }
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
                 <Spinner size="lg" />
             </div>
         );
-    }
-    if (error) {
-        notify('Error al cargar proyectos', 'error');
     }
 
     return (

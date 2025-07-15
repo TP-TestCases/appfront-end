@@ -128,6 +128,20 @@ const TestCases: React.FC = () => {
         }
     }
 
+    const formatSteps = (steps: string): React.ReactElement[] => {
+        if (!steps) return []
+
+        // Dividir por números seguidos de punto (1. 2. 3. etc.)
+        const stepArray = steps.split(/\d+\.\s*/).filter(step => step.trim() !== '')
+
+        return stepArray.map((step, index) => (
+            <div key={index} className="flex items-start gap-2">
+                <span className="text-gray-500 font-medium min-w-fit">{index + 1}.</span>
+                <span className="text-gray-600">{step.trim()}</span>
+            </div>
+        ))
+    }
+
     const handleOpenGenerateModal = (): void => {
         // Verificar que userStories existe y tiene elementos
         if (!userStories || userStories.length === 0) {
@@ -236,8 +250,8 @@ const TestCases: React.FC = () => {
                                                         <Icon icon={typeInfo.icon} className={`h-5 w-5 ${typeInfo.color}`} />
                                                         <span className="font-medium text-gray-800">{testCase.fake_id}</span>
                                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${testCase.type === 'happy' ? 'bg-green-100 text-green-800' :
-                                                                testCase.type === 'error' ? 'bg-red-100 text-red-800' :
-                                                                    'bg-yellow-100 text-yellow-800'
+                                                            testCase.type === 'error' ? 'bg-red-100 text-red-800' :
+                                                                'bg-yellow-100 text-yellow-800'
                                                             }`}>
                                                             {getTypeLabel(testCase.type)}
                                                         </span>
@@ -249,8 +263,10 @@ const TestCases: React.FC = () => {
                                                             <p className="text-gray-600">{testCase.input_data}</p>
                                                         </div>
                                                         <div>
-                                                            <h4 className="font-medium text-gray-700 mb-1">Pasos</h4>
-                                                            <p className="text-gray-600">{testCase.steps}</p>
+                                                            <h4 className="font-medium text-gray-700 mb-2">Pasos</h4>
+                                                            <div className="space-y-1">
+                                                                {formatSteps(testCase.steps)}
+                                                            </div>
                                                         </div>
                                                         <div>
                                                             <h4 className="font-medium text-gray-700 mb-1">Resultado Esperado</h4>

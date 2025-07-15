@@ -1,7 +1,6 @@
 import { Epic } from '../domain/Epic'
 import { EpicRepository } from '../domain/EpicRepository'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { HttpService } from '../../shared/services/HttpService'
 
 interface ApiEpicResponse {
     id: number
@@ -20,7 +19,11 @@ interface PaginatedEpicResponse {
 }
 
 export class ApiEpicRepository implements EpicRepository {
-    constructor(private baseUrl: string = API_URL) { }
+    private httpService: HttpService
+
+    constructor() {
+        this.httpService = HttpService.getInstance()
+    }
 
     private mapEpic(data: ApiEpicResponse): Epic {
         return {
@@ -33,7 +36,7 @@ export class ApiEpicRepository implements EpicRepository {
     }
 
     async listByUser(userId: number, page: number = 1, size: number = 10): Promise<PaginatedEpicResponse> {
-        const response = await fetch(`${this.baseUrl}/epics/user/${userId}?page=${page}&size=${size}`)
+        const response = await this.httpService.get(`/epics/user/${userId}?page=${page}&size=${size}`)
         if (!response.ok) {
             throw new Error('Failed to load epics by user')
         }
@@ -45,7 +48,7 @@ export class ApiEpicRepository implements EpicRepository {
     }
 
     async list(project_id: number, page: number = 1, size: number = 10): Promise<PaginatedEpicResponse> {
-        const response = await fetch(`${this.baseUrl}/epics/project/${project_id}?page=${page}&size=${size}`)
+        const response = await this.httpService.get(`/epics/project/${project_id}?page=${page}&size=${size}`)
         if (!response.ok) {
             throw new Error('Failed to load epics')
         }
@@ -57,15 +60,26 @@ export class ApiEpicRepository implements EpicRepository {
     }
 
     async listShort(project_id: number): Promise<{ id: number; fake_id: string; name: string }[]> {
-        const response = await fetch(`${this.baseUrl}/epics/project/${project_id}/short`)
+        const response = await this.httpService.get(`/epics/project/${project_id}/short`)
         if (!response.ok) {
             throw new Error('Failed to load short epics')
         }
-        return await response.json()
+        const data = await response.json()
+        console.log('listShort epics response data:', data)
+
+        if (!Array.isArray(data)) {
+            console.error('Expected array but got:', typeof data, data)
+            if (data && data.items && Array.isArray(data.items)) {
+                return data.items
+            }
+            throw new Error('Invalid response format: expected array of epics')
+        }
+
+        return data
     }
 
     async get(id: number): Promise<Epic> {
-        const response = await fetch(`${this.baseUrl}/epics/${id}`)
+        const response = await this.httpService.get(`/epics/${id}`)
         if (!response.ok) {
             const err = await response.json().catch(() => null)
             throw new Error(err?.detail ?? 'Epic not found')
@@ -75,10 +89,11 @@ export class ApiEpicRepository implements EpicRepository {
     }
 
     async create(fake_id: string, name: string, description: string, project_id: number): Promise<Epic> {
-        const response = await fetch(`${this.baseUrl}/epics`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fake_id, name, description, project_id })
+        const response = await this.httpService.post('/epics', {
+            fake_id,
+            name,
+            description,
+            project_id
         })
         if (!response.ok) {
             const err = await response.json().catch(() => null)
@@ -89,10 +104,9 @@ export class ApiEpicRepository implements EpicRepository {
     }
 
     async update(id: number, name: string, description: string): Promise<Epic> {
-        const response = await fetch(`${this.baseUrl}/epics/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, description })
+        const response = await this.httpService.put(`/epics/${id}`, {
+            name,
+            description
         })
         if (!response.ok) {
             const err = await response.json().catch(() => null)
@@ -103,7 +117,7 @@ export class ApiEpicRepository implements EpicRepository {
     }
 
     async delete(id: number): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/epics/${id}`, { method: 'DELETE' })
+        const response = await this.httpService.delete(`/epics/${id}`)
         if (!response.ok) {
             const err = await response.json().catch(() => null)
             throw new Error(err?.detail ?? 'Failed to delete epic')

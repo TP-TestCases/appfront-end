@@ -1,6 +1,14 @@
 import { Epic } from "../domain/Epic"
 import { EpicRepository } from "../domain/EpicRepository"
 
+interface PaginatedEpicResponse {
+    items: Epic[]
+    total: number
+    page: number
+    size: number
+    pages: number
+}
+
 export class InMemoryEpicRepository implements EpicRepository {
     private epics: (Epic & { project_id: number })[]
 
@@ -8,12 +16,37 @@ export class InMemoryEpicRepository implements EpicRepository {
         this.epics = initial
     }
 
-    async listByUser(): Promise<Epic[]> {
-        return this.epics
+    async listByUser(_userId: number, page: number = 1, size: number = 10): Promise<PaginatedEpicResponse> {
+        const startIndex = (page - 1) * size
+        const endIndex = startIndex + size
+        const paginatedItems = this.epics.slice(startIndex, endIndex)
+        const total = this.epics.length
+        const pages = Math.ceil(total / size)
+
+        return {
+            items: paginatedItems,
+            total,
+            page,
+            size,
+            pages
+        }
     }
 
-    async list(project_id: number): Promise<Epic[]> {
-        return this.epics.filter((e) => e.project_id === project_id)
+    async list(project_id: number, page: number = 1, size: number = 10): Promise<PaginatedEpicResponse> {
+        const filteredEpics = this.epics.filter((e) => e.project_id === project_id)
+        const startIndex = (page - 1) * size
+        const endIndex = startIndex + size
+        const paginatedItems = filteredEpics.slice(startIndex, endIndex)
+        const total = filteredEpics.length
+        const pages = Math.ceil(total / size)
+
+        return {
+            items: paginatedItems,
+            total,
+            page,
+            size,
+            pages
+        }
     }
 
     async listShort(project_id: number): Promise<{ id: number; fake_id: string; name: string }[]> {

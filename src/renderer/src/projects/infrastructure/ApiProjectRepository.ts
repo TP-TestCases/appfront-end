@@ -1,11 +1,14 @@
 import { Project } from '../domain/Project'
 import { ProjectRepository } from '../domain/ProjectRepository'
 import { PaginationResponse } from '../../shared/hooks/usePagination'
-
-const API_URL = import.meta.env.VITE_API_URL
+import { HttpService } from '../../shared/services/HttpService'
 
 export class ApiProjectRepository implements ProjectRepository {
-    constructor(private baseUrl: string = API_URL) { }
+    private httpService: HttpService
+
+    constructor() {
+        this.httpService = HttpService.getInstance()
+    }
 
     private mapProject(data: {
         id: number
@@ -22,7 +25,7 @@ export class ApiProjectRepository implements ProjectRepository {
     }
 
     async list(userId: number): Promise<Project[]> {
-        const response = await fetch(`${this.baseUrl}/projects/user/${userId}`)
+        const response = await this.httpService.get(`/projects/user/${userId}`)
         if (!response.ok) {
             throw new Error('Failed to load projects')
         }
@@ -33,16 +36,26 @@ export class ApiProjectRepository implements ProjectRepository {
     }
 
     async listShort(userId: number): Promise<{ id: number; name: string }[]> {
-        const response = await fetch(`${this.baseUrl}/projects/user/${userId}`)
+        const response = await this.httpService.get(`/projects/user/${userId}`)
         if (!response.ok) {
             throw new Error('Failed to load short projects')
         }
         const data = await response.json()
+        console.log('listShort response data:', data)
+
+        if (!Array.isArray(data)) {
+            console.error('Expected array but got:', typeof data, data)
+            if (data && data.items && Array.isArray(data.items)) {
+                return data.items.map((p: { id: number; name: string }) => ({ id: p.id, name: p.name }))
+            }
+            throw new Error('Invalid response format: expected array of projects')
+        }
+
         return data.map((p: { id: number; name: string }) => ({ id: p.id, name: p.name }))
     }
 
     async listByUser(userId: number, page: number, size: number): Promise<PaginationResponse<Project>> {
-        const response = await fetch(`${this.baseUrl}/projects/user/${userId}?page=${page}&size=${size}`)
+        const response = await this.httpService.get(`/projects/user/${userId}?page=${page}&size=${size}`)
         if (!response.ok) {
             throw new Error('Failed to load projects')
         }
@@ -58,10 +71,10 @@ export class ApiProjectRepository implements ProjectRepository {
     }
 
     async create(userId: number, name: string, description: string): Promise<Project> {
-        const response = await fetch(`${this.baseUrl}/projects`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, name, description })
+        const response = await this.httpService.post('/projects/', {
+            user_id: userId,
+            name,
+            description
         })
         if (!response.ok) {
             const err = await response.json().catch(() => null)
@@ -72,10 +85,9 @@ export class ApiProjectRepository implements ProjectRepository {
     }
 
     async update(id: number, name: string, description: string): Promise<Project> {
-        const response = await fetch(`${this.baseUrl}/projects/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, description })
+        const response = await this.httpService.put(`/projects/${id}`, {
+            name,
+            description
         })
         if (!response.ok) {
             const err = await response.json().catch(() => null)
@@ -86,7 +98,7 @@ export class ApiProjectRepository implements ProjectRepository {
     }
 
     async delete(id: number): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/projects/${id}`, { method: 'DELETE' })
+        const response = await this.httpService.delete(`/projects/${id}`)
         if (!response.ok) {
             const err = await response.json().catch(() => null)
             throw new Error(err?.detail ?? 'Failed to delete project')

@@ -40,12 +40,12 @@ const Login: React.FC<{ setIsLoggedIn: (value: boolean) => void }> = ({
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     try {
-      const user = await authService.login({
+      const response = await authService.login({
         name: form.name,
         password: form.password
       })
       setIsLoggedIn(true)
-      localStorage.setItem('user', JSON.stringify(user))
+      localStorage.setItem('user', JSON.stringify(response.user))
       notify('¡Login exitoso!', 'success')
       navigate('/')
     } catch (e: unknown) {

@@ -22,17 +22,8 @@ import { ApiUserStoryRepository } from '@renderer/userstories/infrastructure/Api
 import { ApiProjectRepository } from '@renderer/projects/infrastructure/ApiProjectRepository';
 import { ApiEpicRepository } from '@renderer/epics/infrastructure/ApiEpicRepository';
 import { useNotification } from '@renderer/shared/utils/useNotification';
+import { getUserId } from '@renderer/shared/utils/authUtils';
 import ImportModal from './ImportModal';
-
-const getUserId = (): number | null => {
-  const user = localStorage.getItem('user');
-  if (!user) return null;
-  try {
-    return JSON.parse(user).id;
-  } catch {
-    return null;
-  }
-};
 
 const userStoryService = new UserStoryService(new ApiUserStoryRepository());
 const projectRepository = new ApiProjectRepository();
@@ -43,7 +34,12 @@ const UserStories: React.FC = () => {
   const userId = getUserId();
 
   const fetchUserStoriesByUser = useCallback(
-    (page: number, size: number) => userStoryService.listByUserPaginated(userId!, page, size),
+    (page: number, size: number) => {
+      if (!userId) {
+        return Promise.reject(new Error('Usuario no autenticado'));
+      }
+      return userStoryService.listByUserPaginated(userId, page, size);
+    },
     [userId]
   );
 
@@ -209,7 +205,7 @@ const UserStories: React.FC = () => {
     setIsImporting(true);
     try {
       await userStoryService.importFromExcel(projectId, file);
-      await refreshData(); // Refrescar datos después de importar
+      await refreshData();
       notify('Historias importadas correctamente', 'success');
       onImportClose();
     } catch (err: unknown) {
@@ -222,14 +218,26 @@ const UserStories: React.FC = () => {
   };
 
   const handleProjectSelectOpen = async (): Promise<void> => {
-    if (!userId) return;
+    if (!userId) {
+      notify('Usuario no autenticado', 'error');
+      return;
+    }
     setProjectLoading(true);
     try {
       const projects = await projectRepository.listShort(userId);
+      console.log('Projects received:', projects);
+
+      if (!Array.isArray(projects)) {
+        console.error('Expected array of projects but got:', projects);
+        notify('Error: respuesta de proyectos inválida', 'error');
+        return;
+      }
+
       setProjectOptions(projects.map((p: { id: number; name: string }) => ({ id: p.id, name: p.name })));
     } catch (err) {
       console.error('Error loading projects:', err);
-      notify('Error al cargar proyectos', 'error');
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      notify(`Error al cargar proyectos: ${errorMessage}`, 'error');
     } finally {
       setProjectLoading(false);
     }
@@ -375,6 +383,17 @@ const UserStories: React.FC = () => {
       required: true
     }
   ];
+
+  if (!userId) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-lg">Usuario no autenticado</p>
+          <p className="text-sm text-gray-500">Por favor, inicia sesión para continuar</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
